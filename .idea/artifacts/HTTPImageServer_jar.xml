@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="HTTPImageServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/HTTPImageServer_jar</output-path>
+    <root id="archive" name="HTTPImageServer.jar">
+      <element id="module-output" name="HTTPImageServer" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/ftplet-api-1.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/ftpserver-core-1.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/mina-core-2.0.16.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/slf4j-api-1.7.21.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
