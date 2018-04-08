@@ -1,6 +1,5 @@
 package inetserver;
 
-import applications.WebServerGUI;
 import misc.ImageTools;
 import misc.Transmitter;
 import transform.Transformation;
@@ -29,9 +28,8 @@ class WebServerClient
     /**
      * Constructor
      *
-     * @param g GUI
      */
-    public WebServerClient ()
+    WebServerClient ()
     {
         m_urltransform = new UrlEncodeUTF8();
         //_gui = g;
@@ -329,7 +327,7 @@ class WebServerClient
         return in.split(" ");
     }
     
-    public void perform(String cmd, OutputStream os) throws Exception
+    void perform (String basePath, String cmd, OutputStream os) throws Exception
     {
         PrintWriter out = new PrintWriter(os, true);
         String[] si = getInput(cmd);
@@ -364,10 +362,10 @@ class WebServerClient
         }
         else
         {
-//            if (path.isEmpty())
-//            {
-//                path = _gui.getBasePath();
-//            }
+            if (path.isEmpty())
+            {
+                path = basePath;
+            }
             imagePage(os, path);
         }
 //        out.flush();

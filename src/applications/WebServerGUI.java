@@ -8,44 +8,42 @@ import inetserver.Sockserver;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 /**
  *
  * This is the GUI class for the web server
  */
-public class WebServerGUI extends JFrame
+public class WebServerGUI extends JPanel
 {
     private static final long serialVersionUID = 1L;
     private Sockserver sockserver;
 
-    public static void main (String[] args)
-    {
-        SwingUtilities.invokeLater(WebServerGUI::run);
-    }
-
-    private static void run ()
-    {
-        WebServerGUI gui = new WebServerGUI();
-        gui.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        gui.addWindowListener(new WindowAdapter()
-        {
-            @Override
-            public void windowClosing (WindowEvent windowEvent)
-            {
-                if (gui.sockserver != null)
-                    gui.sockserver.halt();
-            }
-        });
-        gui.pack();
-        gui.setVisible(true);
-    }
+//    public static void main (String[] args)
+//    {
+//        SwingUtilities.invokeLater(WebServerGUI::run);
+//    }
+//
+//    private static void run ()
+//    {
+//        WebServerGUI gui = new WebServerGUI();
+//        gui.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+//        gui.addWindowListener(new WindowAdapter()
+//        {
+//            @Override
+//            public void windowClosing (WindowEvent windowEvent)
+//            {
+//                if (gui.sockserver != null)
+//                    gui.sockserver.halt();
+//            }
+//        });
+//        gui.pack();
+//        gui.setVisible(true);
+//    }
 
     /**
      * Constructor: creates new form WebServerGUI
      */
-    private WebServerGUI ()
+    public WebServerGUI ()
     {
         initComponents();
         button.setBackground(Color.RED);
@@ -71,8 +69,8 @@ public class WebServerGUI extends JFrame
 //        setClosable(true);
 //        setIconifiable(true);
 //        setMaximizable(true);
-        setResizable(true);
-        setTitle("Webserver");
+//        setResizable(true);
+//        setTitle("Webserver");
         setVisible(true);
 
         pathTxt.setText("F:\\\\");
@@ -88,8 +86,8 @@ public class WebServerGUI extends JFrame
             button.addActionListener(evt -> buttonActionPerformed());
 
 
-            GroupLayout layout = new GroupLayout(getContentPane());
-            getContentPane().setLayout(layout);
+            GroupLayout layout = new GroupLayout(this);
+            this.setLayout(layout);
             layout.setHorizontalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -141,7 +139,7 @@ public class WebServerGUI extends JFrame
                     .addContainerGap())
             );
 
-            pack();
+            //pack();
         }// </editor-fold>//GEN-END:initComponents
 
 
@@ -157,20 +155,26 @@ public class WebServerGUI extends JFrame
         {
             // start server
             int port = Integer.parseInt(portTxt.getText());
-            sockserver = new Sockserver (port, this);
+            sockserver = new Sockserver (port, pathTxt.getText());
             button.setText("stop");
             button.setBackground(Color.GREEN);
         }
         else
         {
-            // stop server
-            sockserver.halt();
-            sockserver = null;
+            stop();
             button.setText("start");
             button.setBackground(Color.RED);
         }
     }//GEN-LAST:event_buttonActionPerformed
-    
+
+    public void stop ()
+    {
+        if (sockserver != null)
+        {
+            sockserver.halt();
+            sockserver = null;
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private JToggleButton button;

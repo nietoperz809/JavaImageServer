@@ -10,38 +10,36 @@ import misc.Tools;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 /**
  *
  * @author Administrator
  */
-public class FtpServerGUI extends JFrame
+public class FtpServerGUI extends JPanel
 {
     private PittiFtpServer ftp;
 
-    public static void main (String[] args)
-    {
-        SwingUtilities.invokeLater(FtpServerGUI::run);
-    }
-
-    private static void run ()
-    {
-        FtpServerGUI gui = new FtpServerGUI();
-        gui.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        gui.addWindowListener(new WindowAdapter()
-        {
-            @Override
-            public void windowClosing (WindowEvent windowEvent)
-            {
-                if (gui.ftp != null)
-                    gui.ftp.stop();
-            }
-        });
-        gui.pack();
-        gui.setVisible(true);
-    }
+//    public static void main (String[] args)
+//    {
+//        SwingUtilities.invokeLater(FtpServerGUI::run);
+//    }
+//
+//    private static void run ()
+//    {
+//        FtpServerGUI gui = new FtpServerGUI();
+//        gui.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+//        gui.addWindowListener(new WindowAdapter()
+//        {
+//            @Override
+//            public void windowClosing (WindowEvent windowEvent)
+//            {
+//                if (gui.ftp != null)
+//                    gui.ftp.stop();
+//            }
+//        });
+//        gui.pack();
+//        gui.setVisible(true);
+//    }
 
     /**
      * Creates new form WebServerGUI
@@ -62,17 +60,17 @@ public class FtpServerGUI extends JFrame
     private void initComponents()
     {
 
-        pathTxt = new javax.swing.JTextField();
+        pathTxt = new javax.swing.JTextField("G:\\");
         portTxt = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         button = new javax.swing.JToggleButton();
         transmitted = new javax.swing.JLabel();
 
-        setResizable(true);
-        setTitle("FtpServer");
+//        setResizable(true);
+//        setTitle("FtpServer");
         setVisible(true);
-        pathTxt.setText("C:\\\\");
+        //pathTxt.setText("C:\\\\");
 
             portTxt.setText("21");
 
@@ -81,13 +79,7 @@ public class FtpServerGUI extends JFrame
             jLabel2.setText("Port");
 
             button.setText("Start");
-            button.addActionListener(new java.awt.event.ActionListener()
-            {
-                public void actionPerformed(java.awt.event.ActionEvent evt)
-                {
-                    buttonActionPerformed(evt);
-                }
-            });
+            button.addActionListener(evt -> buttonActionPerformed(evt));
 
             transmitted.setBackground(new Color(0, 0, 0));
             transmitted.setForeground(new Color(255, 255, 51));
@@ -96,8 +88,8 @@ public class FtpServerGUI extends JFrame
             transmitted.setDoubleBuffered(true);
             transmitted.setOpaque(true);
 
-            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-            getContentPane().setLayout(layout);
+            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+            this.setLayout(layout);
             layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -135,15 +127,16 @@ public class FtpServerGUI extends JFrame
                         .addComponent(button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addContainerGap())
             );
-
-            pack();
         }// </editor-fold>//GEN-END:initComponents
 
-    private void formInternalFrameClosed(javax.swing.event.InternalFrameEvent evt)//GEN-FIRST:event_formInternalFrameClosed
-    {//GEN-HEADEREND:event_formInternalFrameClosed
+    public void stop ()
+    {
         if (ftp != null)
+        {
             ftp.stop();
-    }//GEN-LAST:event_formInternalFrameClosed
+            ftp = null;
+        }
+    }
 
     private void buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonActionPerformed
     {//GEN-HEADEREND:event_buttonActionPerformed
@@ -158,8 +151,7 @@ public class FtpServerGUI extends JFrame
         {
             button.setText("start");
             button.setBackground(Color.RED);
-            ftp.stop();
-            ftp = null;
+            stop();
         }
     }//GEN-LAST:event_buttonActionPerformed
 

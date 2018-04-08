@@ -5,7 +5,6 @@
  */
 package inetserver;
 
-import applications.WebServerGUI;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
@@ -22,13 +21,13 @@ public class Sockserver implements Runnable
 {
     private final int port;
     private HttpServer server;
-    private final WebServerGUI _gui;
+    private final String basePath;
 
-    public Sockserver (int p, WebServerGUI gui)
+    public Sockserver (int p, String bp)
     {
+        basePath = bp;
         port = p;
-        _gui = gui;
-       new Thread(this).start();
+        new Thread(this).start();
     }
 
     public void halt()
@@ -58,11 +57,12 @@ public class Sockserver implements Runnable
             OutputStream os = e.getResponseBody();
             try
             {
-                cl.perform (e.getRequestURI().toString(), os);
+                cl.perform (basePath, e.getRequestURI().toString(), os);
             }
             catch (Exception e1)
             {
                 System.out.println("oops");
+                System.out.println(e1);
             }
             os.close();
         };
