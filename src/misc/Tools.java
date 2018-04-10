@@ -26,7 +26,7 @@ import static java.awt.datatransfer.DataFlavor.stringFlavor;
 /**
  * @author Administrator
  */
-public class Tools
+class Tools
 {
     private static final String m_path = "../ser/";
     private static final ExecutorService globalExecutor = Executors.newFixedThreadPool(20);
@@ -165,7 +165,7 @@ public class Tools
      */
     public static Object deSerialize (String filename) throws Exception
     {
-        Object ret = null;
+        Object ret;
         FileInputStream f_in = new FileInputStream(m_path + filename);
         ObjectInputStream obj_in = new ObjectInputStream(f_in);
         try

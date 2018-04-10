@@ -51,7 +51,7 @@ public class ImageTools
         return fd.getFile() != null && saveImage(fd.getDirectory() + fd.getFile(), img, jpg);
     }
 
-    public static boolean saveImage (String name, BufferedImage img, boolean jpg)
+    private static boolean saveImage (String name, BufferedImage img, boolean jpg)
     {
         if (jpg)
         {
@@ -120,7 +120,7 @@ public class ImageTools
      * @param height        Height
      * @return new Image
      */
-    public static BufferedImage resizeImage (BufferedImage originalImage, int width, int height)
+    private static BufferedImage resizeImage (BufferedImage originalImage, int width, int height)
     {
         if (originalImage == null)
         {
@@ -183,8 +183,7 @@ public class ImageTools
         };
 
         ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-        Image im2 = Toolkit.getDefaultToolkit().createImage(ip);
-        return im2; //toBufferedImage(im2);
+        return Toolkit.getDefaultToolkit().createImage(ip); //toBufferedImage(im2);
     }
 
     public static Image loadImageFromRessource (String name)

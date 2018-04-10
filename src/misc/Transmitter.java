@@ -85,7 +85,7 @@ public class Transmitter
      *
      * @throws IOException
      */
-    public long doTransmission() throws IOException
+    public void doTransmission() throws IOException
     {
         byte b[] = new byte[_blocksize];
         long txTime = System.currentTimeMillis();
@@ -100,6 +100,6 @@ public class Transmitter
             _out.write(b, 0, r);
             //counter.getAndAdd(r);
         }
-        return System.currentTimeMillis() - txTime;
+        System.currentTimeMillis();
     }
 }

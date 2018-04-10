@@ -40,8 +40,8 @@ public class FtpServerGUI extends JPanel
 
         pathTxt = new javax.swing.JTextField("G:\\");
         portTxt = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        JLabel jLabel1 = new JLabel();
+        JLabel jLabel2 = new JLabel();
         button = new javax.swing.JToggleButton();
 
 //        setResizable(true);
@@ -56,7 +56,7 @@ public class FtpServerGUI extends JPanel
             jLabel2.setText("Port");
 
             button.setText("Start");
-            button.addActionListener(evt -> buttonActionPerformed(evt));
+            button.addActionListener(this::buttonActionPerformed);
 
 
             javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -137,8 +137,6 @@ public class FtpServerGUI extends JPanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton button;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JTextField pathTxt;
     private javax.swing.JTextField portTxt;
 

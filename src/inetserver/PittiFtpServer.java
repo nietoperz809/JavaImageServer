@@ -16,7 +16,6 @@ import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
 import org.apache.ftpserver.usermanager.impl.TransferRatePermission;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,14 +28,13 @@ import java.util.Map;
 public class PittiFtpServer
 {
     private final FtpServer ftpServer;
-    private FtpletContext _fc;
-    
+
     private class Pittilet implements Ftplet
     {
         @Override
-        public void init(FtpletContext fc) throws FtpException
+        public void init(FtpletContext fc)
         {
-            _fc = fc;
+            FtpletContext _fc = fc;
             System.out.println("ftp init: ");
         }
 
@@ -47,28 +45,28 @@ public class PittiFtpServer
         }
 
         @Override
-        public FtpletResult beforeCommand(FtpSession fs, FtpRequest fr) throws FtpException, IOException
+        public FtpletResult beforeCommand(FtpSession fs, FtpRequest fr)
         {
             System.out.println("ftp before: "+fr.getCommand());
             return FtpletResult.DEFAULT;
         }
 
         @Override
-        public FtpletResult afterCommand(FtpSession fs, FtpRequest fr, FtpReply fr1) throws FtpException, IOException
+        public FtpletResult afterCommand(FtpSession fs, FtpRequest fr, FtpReply fr1)
         {
             System.out.println("ftp after: "+fr.getCommand());
             return FtpletResult.DEFAULT;
         }
 
         @Override
-        public FtpletResult onConnect(FtpSession fs) throws FtpException, IOException
+        public FtpletResult onConnect(FtpSession fs)
         {
             System.out.println("ftp connect: "+fs.toString());
             return FtpletResult.DEFAULT;
         }
 
         @Override
-        public FtpletResult onDisconnect(FtpSession fs) throws FtpException, IOException
+        public FtpletResult onDisconnect(FtpSession fs)
         {
             System.out.println("ftp disconnect: "+fs.getSessionId());
             return FtpletResult.DEFAULT;
@@ -104,7 +102,7 @@ public class PittiFtpServer
         user.setPassword("");
         user.setEnabled(true);
         user.setHomeDirectory(path);
-        List<Authority> authorities = new ArrayList<Authority>();
+        List<Authority> authorities = new ArrayList<>();
         authorities.add(new WritePermission());
         authorities.add(new ConcurrentLoginPermission(0, 0));
         authorities.add(new TransferRatePermission(0, 0));
@@ -123,20 +121,19 @@ public class PittiFtpServer
         ftpServer = serverFactory.createServer();
     }
 
-    public boolean stop()
+    public void stop()
     {
         if (ftpServer == null)
-            return false;
+            return;
         ftpServer.stop();
-        return true;
     }
   
-    public boolean isRunning()
-    {
-        return !(ftpServer.isStopped() | ftpServer.isSuspended());
-    }
+//    public boolean isRunning()
+//    {
+//        return !(ftpServer.isStopped() | ftpServer.isSuspended());
+//    }
     
-    public boolean start()
+    public void start()
     {
         try
         {
@@ -145,8 +142,6 @@ public class PittiFtpServer
         catch (Exception ex)
         {
             System.out.println("start exception "+ex.getMessage());
-            return false;
         }
-        return true;
     }
 }

@@ -41,8 +41,8 @@ public class WebServerGUI extends JPanel
 
         pathTxt = new JTextField();
         portTxt = new JTextField();
-        jLabel1 = new JLabel();
-        jLabel2 = new JLabel();
+        JLabel jLabel1 = new JLabel();
+        JLabel jLabel2 = new JLabel();
         button = new JToggleButton();
 
 //        setClosable(true);
@@ -174,8 +174,6 @@ public class WebServerGUI extends JPanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private JToggleButton button;
-    private JLabel jLabel1;
-    private JLabel jLabel2;
     private JTextField pathTxt;
     private JTextField portTxt;
     //private JLabel transmitted;
