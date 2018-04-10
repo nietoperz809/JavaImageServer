@@ -5,7 +5,6 @@
  */
 package inetserver;
 
-import applications.FtpServerGUI;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.*;
@@ -30,7 +29,6 @@ import java.util.Map;
 public class PittiFtpServer
 {
     private final FtpServer ftpServer;
-    private FtpServerGUI _gui;
     private FtpletContext _fc;
     
     private class Pittilet implements Ftplet
@@ -59,7 +57,6 @@ public class PittiFtpServer
         public FtpletResult afterCommand(FtpSession fs, FtpRequest fr, FtpReply fr1) throws FtpException, IOException
         {
             System.out.println("ftp after: "+fr.getCommand());
-            _gui.showBytesTransmitted(_fc.getFtpStatistics().getTotalDownloadSize());
             return FtpletResult.DEFAULT;
         }
 
@@ -82,9 +79,8 @@ public class PittiFtpServer
      * @param path
      * @param port
      */
-    public PittiFtpServer (FtpServerGUI gui, String path, int port) 
+    public PittiFtpServer (String path, int port)
     {
-        _gui = gui;
         FtpServerFactory serverFactory = new FtpServerFactory();
         ListenerFactory factory = new ListenerFactory();
         factory.setPort(port);
@@ -104,8 +100,8 @@ public class PittiFtpServer
         userManagerFactory.setPasswordEncryptor(new ClearTextPasswordEncryptor());
         UserManager um = userManagerFactory.createUserManager();
         BaseUser user = new BaseUser();
-        user.setName("admin");
-        user.setPassword("admin");
+        user.setName("anonymous");
+        user.setPassword("");
         user.setEnabled(true);
         user.setHomeDirectory(path);
         List<Authority> authorities = new ArrayList<Authority>();

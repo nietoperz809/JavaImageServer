@@ -1,0 +1,8 @@
+ftp-port :: 21
+ftp-path :: C:\\
+ftp-start
+
+http-port :: 80
+http-path :: C:\\
+http-start
+

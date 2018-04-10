@@ -16,29 +16,8 @@ import java.awt.*;
 public class WebServerGUI extends JPanel
 {
     private static final long serialVersionUID = 1L;
-    private Sockserver sockserver;
+    private volatile Sockserver sockserver = null;
 
-//    public static void main (String[] args)
-//    {
-//        SwingUtilities.invokeLater(WebServerGUI::run);
-//    }
-//
-//    private static void run ()
-//    {
-//        WebServerGUI gui = new WebServerGUI();
-//        gui.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-//        gui.addWindowListener(new WindowAdapter()
-//        {
-//            @Override
-//            public void windowClosing (WindowEvent windowEvent)
-//            {
-//                if (gui.sockserver != null)
-//                    gui.sockserver.halt();
-//            }
-//        });
-//        gui.pack();
-//        gui.setVisible(true);
-//    }
 
     /**
      * Constructor: creates new form WebServerGUI
@@ -149,23 +128,38 @@ public class WebServerGUI extends JPanel
     }
     
     
-    private void buttonActionPerformed ()//GEN-FIRST:event_buttonActionPerformed
-    {//GEN-HEADEREND:event_buttonActionPerformed
+    private void buttonActionPerformed ()
+    {
         if (button.isSelected())
         {
-            // start server
-            int port = Integer.parseInt(portTxt.getText());
-            sockserver = new Sockserver (port, pathTxt.getText());
-            button.setText("stop");
-            button.setBackground(Color.GREEN);
+            start();
         }
         else
         {
             stop();
-            button.setText("start");
-            button.setBackground(Color.RED);
         }
-    }//GEN-LAST:event_buttonActionPerformed
+    }
+
+    public void setPathTxt (String pathTxt)
+    {
+        this.pathTxt.setText(pathTxt);
+    }
+
+    public void setPortTxt (String portTxt)
+    {
+        this.portTxt.setText(portTxt);
+    }
+
+    public void start()
+    {
+        if (sockserver == null)
+        {
+            int port = Integer.parseInt(portTxt.getText());
+            sockserver = new Sockserver(port, pathTxt.getText());
+            button.setText("stop");
+            button.setBackground(Color.GREEN);
+        }
+    }
 
     public void stop ()
     {
@@ -173,6 +167,8 @@ public class WebServerGUI extends JPanel
         {
             sockserver.halt();
             sockserver = null;
+            button.setText("start");
+            button.setBackground(Color.RED);
         }
     }
 

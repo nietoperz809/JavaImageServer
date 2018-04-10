@@ -67,7 +67,7 @@ public class Sockserver implements Runnable
             os.close();
         };
 
-        for(int s=0; s<1000; s++)
+        for(int s=0; s<100; s++)
             server.createContext("/", hnd);
 
         server.start();

@@ -6,7 +6,6 @@
 package applications;
 
 import inetserver.PittiFtpServer;
-import misc.Tools;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,29 +16,8 @@ import java.awt.*;
  */
 public class FtpServerGUI extends JPanel
 {
-    private PittiFtpServer ftp;
+    private volatile PittiFtpServer ftp = null;
 
-//    public static void main (String[] args)
-//    {
-//        SwingUtilities.invokeLater(FtpServerGUI::run);
-//    }
-//
-//    private static void run ()
-//    {
-//        FtpServerGUI gui = new FtpServerGUI();
-//        gui.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-//        gui.addWindowListener(new WindowAdapter()
-//        {
-//            @Override
-//            public void windowClosing (WindowEvent windowEvent)
-//            {
-//                if (gui.ftp != null)
-//                    gui.ftp.stop();
-//            }
-//        });
-//        gui.pack();
-//        gui.setVisible(true);
-//    }
 
     /**
      * Creates new form WebServerGUI
@@ -65,7 +43,6 @@ public class FtpServerGUI extends JPanel
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         button = new javax.swing.JToggleButton();
-        transmitted = new javax.swing.JLabel();
 
 //        setResizable(true);
 //        setTitle("FtpServer");
@@ -81,12 +58,6 @@ public class FtpServerGUI extends JPanel
             button.setText("Start");
             button.addActionListener(evt -> buttonActionPerformed(evt));
 
-            transmitted.setBackground(new Color(0, 0, 0));
-            transmitted.setForeground(new Color(255, 255, 51));
-            transmitted.setText("0");
-            transmitted.setToolTipText("Bytes transferred ...");
-            transmitted.setDoubleBuffered(true);
-            transmitted.setOpaque(true);
 
             javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
             this.setLayout(layout);
@@ -105,7 +76,7 @@ public class FtpServerGUI extends JPanel
                         .addGroup(layout.createSequentialGroup()
                             .addComponent(portTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGap(38, 38, 38)
-                            .addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            //.addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 74, Short.MAX_VALUE)
                             .addComponent(button, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addContainerGap())
@@ -121,8 +92,8 @@ public class FtpServerGUI extends JPanel
                         .addGroup(layout.createSequentialGroup()
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(jLabel2)
-                                .addComponent(portTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(portTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                //.addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGap(0, 15, Short.MAX_VALUE))
                         .addComponent(button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addContainerGap())
@@ -135,35 +106,34 @@ public class FtpServerGUI extends JPanel
         {
             ftp.stop();
             ftp = null;
+            button.setText("start");
+            button.setBackground(Color.RED);
         }
     }
 
-    private void buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_buttonActionPerformed
-    {//GEN-HEADEREND:event_buttonActionPerformed
-        if (button.isSelected())
+    public void start()
+    {
+        if (ftp == null)
         {
+            ftp = new PittiFtpServer(pathTxt.getText(), Integer.parseInt(portTxt.getText()));
+            ftp.start();
             button.setText("stop");
             button.setBackground(Color.GREEN);
-            ftp = new PittiFtpServer(this, pathTxt.getText(), Integer.parseInt (portTxt.getText()));
-            ftp.start();
+        }
+    }
+
+    private void buttonActionPerformed(java.awt.event.ActionEvent evt)
+    {
+        if (button.isSelected())
+        {
+            start();
         }
         else
         {
-            button.setText("start");
-            button.setBackground(Color.RED);
             stop();
         }
-    }//GEN-LAST:event_buttonActionPerformed
-
-    /**
-     * Called from webserver worker threads to update counter display
-     * @param bytes
-     */
-    public synchronized void showBytesTransmitted(long bytes)
-    {
-        transmitted.setText("  "+Tools.humanReadableByteCount (bytes));
-        repaint();
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton button;
@@ -171,7 +141,16 @@ public class FtpServerGUI extends JPanel
     private javax.swing.JLabel jLabel2;
     private javax.swing.JTextField pathTxt;
     private javax.swing.JTextField portTxt;
-    private javax.swing.JLabel transmitted;
-    // End of variables declaration//GEN-END:variables
+
+    public void setPathTxt (String  pathTxt)
+    {
+        this.pathTxt.setText(pathTxt);
+    }
+
+    public void setPortTxt (String portTxt)
+    {
+        this.portTxt.setText(portTxt);
+    }
+// End of variables declaration//GEN-END:variables
 
 }
