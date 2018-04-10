@@ -3,21 +3,26 @@ package misc;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * A config file is organised as following:
+ * A line of the config file is organised as following:
  * keyword :: p1 :: p2 :: p3 ... pn
+ *
+ * :: is the delimiter
  * The arguments p1 ... pn are optional
+ * Whitespaces are ignored
+ * Lines that do not start with a known keyword are ignored
+ * Blank lines are also ignored
  *
  * The usage is:
  *         ConfigFile cf = new ConfigFile("file_name_on_disk");
  *         cf.setAction("any_string", strings -> Command(strings));
  *         cf.setAction("other_string", strings -> Command(strings));
  *         ...
- *         cf.execute(); // Parse file and execute Commands
+ *         cf.execute(); // Parse file and execute commands
  *
  * Commands are functions/methods that take a single String[] as argument
  * 
@@ -25,7 +30,7 @@ import java.util.stream.Stream;
 public class ConfigFile
 {
     private final String _path;
-    private final ArrayList<Action> _list = new ArrayList<>();
+    private final HashMap<String, Consumer<String[]>> _map = new HashMap<>();
 
     /**
      * Constructor
@@ -37,28 +42,13 @@ public class ConfigFile
     }
 
     /**
-     * Action element
-     */
-    private class Action
-    {
-        final String name;
-        final Consumer<String[]> function;
-
-        Action (String n, Consumer<String[]> r)
-        {
-            name = n;
-            function = r;
-        }
-    }
-
-    /**
      * Submit a new action command
      * @param name Keyword
      * @param r Handler function
      */
     public void setAction (String name, Consumer<String[]> r)
     {
-        _list.add(new Action (name, r));
+        _map.put (name, r);
     }
 
     /**
@@ -69,14 +59,12 @@ public class ConfigFile
     {
         line = line.replaceAll("\\s+","");
         String[] splits = line.split("::");
-        for (Action a : _list)
+        Consumer<String[]> func = _map.get(splits[0]);
+        if (func != null)
         {
-            if (splits[0].equals(a.name))
-            {
-                String[] args = new String[splits.length-1];
-                System.arraycopy(splits, 1, args, 0, args.length);
-                a.function.accept(args);
-            }
+            String[] args = new String[splits.length-1];
+            System.arraycopy(splits, 1, args, 0, args.length);
+            func.accept(args);
         }
     }
 
