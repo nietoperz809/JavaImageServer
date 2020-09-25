@@ -8,13 +8,13 @@ package inetserver;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 /**
- *
  * @author Administrator
  */
 public class Sockserver implements Runnable
@@ -27,49 +27,49 @@ public class Sockserver implements Runnable
     {
         basePath = bp;
         port = p;
-        new Thread(this).start();
+        //new Thread(this).start();
+        run ();
     }
 
-    public void halt()
+    public void halt ()
     {
-        server.stop(5);
+        server.stop (5);
     }
 
     @Override
-    public void run()
+    public void run ()
     {
         server = null;
         try
         {
-            server = HttpServer.create(new InetSocketAddress(port),1000);
-            server.setExecutor(Executors.newCachedThreadPool()); // multiple Threads
+            server = HttpServer.create (new InetSocketAddress (port), 10);
+            server.setExecutor (Executors.newFixedThreadPool (20)); // multiple Threads
 
-        }
-        catch (IOException e)
+        } catch (IOException e)
         {
             return;
         }
 
         HttpHandler hnd = e ->
         {
-            WebServerClient cl = new WebServerClient();
-            e.sendResponseHeaders(200, 0);
-            OutputStream os = e.getResponseBody();
+            WebServerClient cl = new WebServerClient ();
+            e.sendResponseHeaders (200, 0);
+            OutputStream os = e.getResponseBody ();
             try
             {
-                cl.perform (basePath, e.getRequestURI().toString(), os);
+                cl.perform (basePath, e.getRequestURI ().toString (), os);
             }
             catch (Exception e1)
             {
-                System.out.println("oops");
-                System.out.println(e1);
+                System.out.println ("oops");
+                System.out.println (e1);
             }
-            os.close();
+            os.close ();
         };
 
-        for(int s=0; s<100; s++)
-            server.createContext("/", hnd);
+        //for(int s=0; s<100; s++)
+        server.createContext ("/", hnd);
 
-        server.start();
+        server.start ();
     }
 }

@@ -71,15 +71,9 @@ public class ConfigFile
     /**
      * Parse whole config file and execute it line by line
      */
-    public void execute()
+    public void execute() throws IOException
     {
-        try (Stream<String> stream = Files.lines(Paths.get(_path)))
-        {
-            stream.forEach(this::handleLine);
-        }
-        catch (IOException e)
-        {
-            System.out.println(e);
-        }
+        Stream<String> stream = Files.lines(Paths.get(_path));
+        stream.forEach(this::handleLine);
     }
 }

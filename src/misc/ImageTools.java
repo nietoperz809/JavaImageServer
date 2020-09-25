@@ -108,7 +108,7 @@ public class ImageTools
 
         writer.setOutput(ImageIO.createImageOutputStream(os));
         writer.write(null, new IIOImage(image, null, null), param);
-        writer.dispose();
+        //writer.dispose();
         return os.toByteArray();
     }
 
@@ -126,7 +126,7 @@ public class ImageTools
         {
             return null;
         }
-        int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
+        int type =  BufferedImage.TYPE_INT_RGB;
         BufferedImage resizedImage = new BufferedImage(width, height, type);
         Graphics2D g = resizedImage.createGraphics();
         g.drawImage(originalImage, 0, 0, width, height, null);

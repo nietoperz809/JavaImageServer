@@ -6,6 +6,7 @@ import transform.Transformation;
 import transform.UrlEncodeUTF8;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -143,7 +144,7 @@ class WebServerClient
                 sb.append(u8);
                 sb.append("\" target=\"_blank\"><img src=\"");
                 sb.append(u8);
-                sb.append("\"></a>\r\n");
+                sb.append("\" width=\"100\" height=\"100\"></a>\r\n");
             }
             else if (isMP4(name))
             {
@@ -213,18 +214,20 @@ class WebServerClient
     /**
      * Send image HTTP response header
      *
-     * @param w output socket as printwriter
+     * @param out output stream
      * @param len size of image
      */
-    private void imgHead(PrintWriter w, int len)
+    private void imgHead (OutputStream out, int len)
     {
-        w.println("HTTP/1.1 200 OK");
-        w.println("Content-Length: " + len);
-        w.println("Content-Type: image/jpeg");
-        w.println("Cache-Control: max-age=31536000, public");
+        StringBuilder b = new StringBuilder ();
+        b.append ("HTTP/1.1 200 OK\n");
+        b.append("Content-Length: ").append(len).append ("\n");
+        b.append("Content-Type: image/jpeg\n");
+        b.append("Cache-Control: max-age=31536000, public\n");
         //w.println("Expires: 06 Apr 2020 19:25:30 GMT");
-        w.println("Connection: close");
-        w.println();
+        b.append("Connection: close\n");
+        b.append("\n");
+        new PrintWriter (out).print (b.toString ());
     }
 
     /**
@@ -232,12 +235,12 @@ class WebServerClient
      *
      * @param out output stream
      */
-    private void sendJpegSmall(OutputStream out, String path) throws Exception
+    private void sendJpegSmall (OutputStream out, String path) throws Exception
     {
         File f = new File(path);
-        PrintWriter w = new PrintWriter(out);
+        //PrintWriter w = new PrintWriter(out);
         byte[] b = ImageTools.reduceImg(f, 0.2f);
-        imgHead(w, b.length);
+        imgHead(out, b.length);
         Transmitter t = new Transmitter(b, out);
         t.doTransmission();
         //System.gc ();
@@ -247,9 +250,9 @@ class WebServerClient
     private void sendJpegOriginal(OutputStream out, String fname) throws IOException
     {
         File f = new File(fname);
-        PrintWriter w = new PrintWriter(out);
+        //PrintWriter w = new PrintWriter (out);
         InputStream input = new FileInputStream(f);
-        imgHead(w, (int) f.length());
+        imgHead (out, (int) f.length());
         Transmitter t = new Transmitter(input, out);
         t.doTransmission();
     }
@@ -291,9 +294,9 @@ class WebServerClient
         String mp = buildMainPage(path);
         if (mp == null)
         {
-            PrintWriter p = new PrintWriter (out);
-            textFile(p, path);
-            p.close();
+            //PrintWriter p = new PrintWriter (out);
+            textFile(out, path);
+            //p.close();
         }
         String txt = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
                 + mp
@@ -309,12 +312,12 @@ class WebServerClient
         return Files.readAllBytes(p);
     }
 
-    private void textFile(PrintWriter out, String path) throws IOException
+    private void textFile (OutputStream os, String path) throws IOException
     {
         byte[] b = getTextFile(path);
-        String cnt = new String(b, "UTF-8");
+        String cnt = new String(b, StandardCharsets.UTF_8);
         String txt = "<html><pre>\r\n" + cnt + "</pre></html>";
-        out.print(txt);
+        new PrintStream(os).print(txt);
     }
 
     private String[] getInput(String in)
@@ -329,7 +332,8 @@ class WebServerClient
     
     void perform (String basePath, String cmd, OutputStream os) throws Exception
     {
-        PrintWriter out = new PrintWriter(os, true);
+        os = new BufferedOutputStream (os);
+        //PrintWriter out = new PrintWriter(os, true);
         String[] si = getInput(cmd);
         String path = si[0].substring(1);
 
@@ -357,7 +361,7 @@ class WebServerClient
         }
         else if (isText(path))
         {
-            textFile(out, path);
+            textFile(os, path);
             //System.out.println("text -- " + path);
         }
         else
@@ -368,7 +372,5 @@ class WebServerClient
             }
             imagePage(os, path);
         }
-//        out.flush();
-//        out.close();
     }
 }
