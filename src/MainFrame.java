@@ -1,6 +1,7 @@
 import applications.FtpServerGUI;
 import applications.WebServerGUI;
 import misc.ConfigFile;
+import misc.Tools;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -16,16 +17,7 @@ class MainFrame
         WebServerGUI web = new WebServerGUI();
 
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-//        jf.addWindowListener(new WindowAdapter()
-//        {
-//            @Override
-//            public void windowClosing (WindowEvent windowEvent)
-//            {
-//                ftp.stop();
-//                web.stop();
-//            }
-//        });
-
+        jf.setIconImage(Tools.getImageFromResource("favicon.ico"));
         JTabbedPane tabpane = new JTabbedPane
                 (JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
         tabpane.addTab("FTP", ftp);

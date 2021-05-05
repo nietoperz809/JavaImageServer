@@ -5,12 +5,14 @@ package misc;
 
 //import transform.Transformation;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -35,5 +37,12 @@ public class Tools
         return new BufferedInputStream (Objects.requireNonNull (is));
     }
 
-
+    public static BufferedImage getImageFromResource (String name)
+    {
+        try {
+            return ImageIO.read(getResourceAsStream(name));
+        } catch (IOException e) {
+            return null;
+        }
+    }
 }
