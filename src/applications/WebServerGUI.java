@@ -4,7 +4,7 @@ package applications;/*
  * and open the template in the editor.
  */
 
-import inetserver.Sockserver;
+import inetserver.nagaweb.NIOWebServer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +16,7 @@ import java.awt.*;
 public class WebServerGUI extends JPanel
 {
     private static final long serialVersionUID = 1L;
-    private volatile Sockserver sockserver = null;
+    private volatile NIOWebServer sockserver = null;
 
 
     /**
@@ -155,7 +155,10 @@ public class WebServerGUI extends JPanel
         if (sockserver == null)
         {
             int port = Integer.parseInt(portTxt.getText());
-            sockserver = new Sockserver(port, pathTxt.getText());
+
+            sockserver = new NIOWebServer(port, pathTxt.getText());
+            new Thread(() -> sockserver.startServer()).start();
+
             button.setText("stop");
             button.setBackground(Color.GREEN);
         }
@@ -176,7 +179,4 @@ public class WebServerGUI extends JPanel
     private JToggleButton button;
     private JTextField pathTxt;
     private JTextField portTxt;
-    //private JLabel transmitted;
-    // End of variables declaration//GEN-END:variables
-
 }

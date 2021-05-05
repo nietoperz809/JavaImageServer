@@ -37,6 +37,18 @@ public class Tools
         return new BufferedInputStream (Objects.requireNonNull (is));
     }
 
+    public static byte[] gatResourceAsArray(String name)
+    {
+        InputStream in = getResourceAsStream(name);
+        try {
+            byte[] arr = new byte[in.available()];
+            in.read(arr);
+            return arr;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     public static BufferedImage getImageFromResource (String name)
     {
         try {
@@ -44,5 +56,48 @@ public class Tools
         } catch (IOException e) {
             return null;
         }
+    }
+
+    /**
+     * Reduces image quality
+     *
+     * @param path Path of jpeg file
+     * @return byte array of jpeg data
+     * @throws Exception
+     */
+    public static byte[] reduceImg (File path) throws Exception
+    {
+        BufferedImage image = ImageIO.read(path);
+        BufferedImage image2 = resizeImage(image, 100, 100);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ImageIO.write(image2, "jpg", os);
+        return os.toByteArray();
+    }
+
+    /**
+     * Creates Image copy of new size
+     *
+     * @param originalImage Input image
+     * @param width         With
+     * @param height        Height
+     * @return new Image
+     */
+    private static BufferedImage resizeImage (Image originalImage, int width, int height)
+    {
+        if (originalImage == null)
+        {
+            return null;
+        }
+        BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = resizedImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
+        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
+
+        g.drawImage(originalImage, 0, 0, width, height, null);
+        g.dispose();
+
+        return resizedImage;
     }
 }

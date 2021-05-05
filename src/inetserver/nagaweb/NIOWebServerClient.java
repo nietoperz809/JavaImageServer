@@ -1,37 +1,29 @@
-package inetserver;
+package inetserver.nagaweb;
 
-import misc.ImageTools;
+
 import misc.Tools;
-import misc.Transmitter;
+import naga.NIOSocket;
 import transform.Transformation;
 import transform.UrlEncodeUTF8;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Objects;
 
 //import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @author Administrator
  */
-class WebServerClient
-{
-    private final UrlEncodeUTF8 m_urltransform;
+class NIOWebServerClient {
+    private final UrlEncodeUTF8 m_urltransform = new UrlEncodeUTF8();
 
-    /**
-     * Constructor
-     *
-     */
-    WebServerClient ()
-    {
-        m_urltransform = new UrlEncodeUTF8();
-    }
 
     /**
      * Is File MP4
@@ -39,8 +31,7 @@ class WebServerClient
      * @param in file name
      * @return TRUE if file is named .mp4
      */
-    private boolean isMP4(String in)
-    {
+    private boolean isMP4(String in) {
         return in.toLowerCase().endsWith(".mp4");
     }
 
@@ -50,12 +41,11 @@ class WebServerClient
      * @param in file name
      * @return TRUE if file is jpeg
      */
-    private boolean isImage (String in)
-    {
+    private boolean isImage(String in) {
         in = in.toLowerCase();
         return in.endsWith(".jpg") ||
                 in.endsWith(".jpeg") ||
-                in.endsWith (".png") ||
+                in.endsWith(".png") ||
                 in.endsWith(".bmp");
     }
 
@@ -65,8 +55,7 @@ class WebServerClient
      * @param in file name
      * @return TRUE if file is zip
      */
-    private boolean isZip(String in)
-    {
+    private boolean isZip(String in) {
         in = in.toLowerCase();
         return in.endsWith(".zip") || in.endsWith(".rar");
     }
@@ -77,8 +66,7 @@ class WebServerClient
      * @param in file name
      * @return TRUE if file is text file
      */
-    private boolean isText(String in)
-    {
+    private boolean isText(String in) {
         in = in.toLowerCase();
         return in.endsWith(".txt") || in.endsWith(".c")
                 || in.endsWith(".cpp")
@@ -86,10 +74,8 @@ class WebServerClient
                 || in.endsWith(".hxx") || in.endsWith(".java");
     }
 
-    private void appendLink (ArrayList<Path> list, StringBuilder sb)
-    {
-        for (Path p : list)
-        {
+    private void appendLink(ArrayList<Path> list, StringBuilder sb) {
+        for (Path p : list) {
             String u8 = m_urltransform.transform(p.toString());
             sb.append("<a href=\"").append(u8).append("\">");
             sb.append(p.getFileName().toString()).append("</a>").append("<br>\r\n");
@@ -102,15 +88,13 @@ class WebServerClient
      * @param path dir to be used
      * @return html page
      */
-    private String buildMainPage(String path)
-    {
+    private String buildMainPage(String path) {
         File f = new File(path);
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
         File[] fils = f.listFiles();
 
-        if (fils == null)
-        {
+        if (fils == null) {
             return null;
         }
 
@@ -119,23 +103,22 @@ class WebServerClient
         ArrayList<Path> otherfiles = new ArrayList<>();
 
         Path pp = Paths.get(path).getParent();
-        if (pp != null)
-        {
+        if (pp != null) {
             String u8 = m_urltransform.transform(pp.toString());
             sb2.append("<a href=\"").append(u8).append("\">");
             sb2.append("*BACK*").append("</a>").append("<hr>\r\n");
         }
-        for (File fil : fils)
-        {
+        int imageCtr = 0;
+        int vidCtr = 0;
+
+        for (File fil : fils) {
             String name = fil.getName();
             Path p = Paths.get(path, name);
             String u8 = m_urltransform.transform(p.toString());
-            if (fil.isDirectory())
-            {
+            if (fil.isDirectory()) {
                 dirs.add(p);
-            }
-            else if (isImage(name))
-            {
+            } else if (isImage(name)) {
+                imageCtr++;
                 sb.append("<a href=\"");
                 sb.append("*IMG*");
                 sb.append(u8);
@@ -143,19 +126,15 @@ class WebServerClient
                 sb.append(u8);
                 sb.append("\"></a>\r\n");
                 //sb.append("\" width=\"100\" height=\"100\"></a>\r\n");
-            }
-            else if (isMP4(name))
-            {
+            } else if (isMP4(name)) {
+                vidCtr++;
                 sb.append("<video controls src=\"");
                 sb.append(u8).append("\">");
                 sb.append("Your user agent does not support the HTML5 Video element.</video>");
                 sb.append("\r\n");
-            }
-            else if (isText(name) || isZip(name))
-            {
+            } else if (isText(name) || isZip(name)) {
                 txtfiles.add(p);
-            }
-            else
+            } else
                 otherfiles.add(p);
         }
         appendLink(dirs, sb2);
@@ -163,7 +142,7 @@ class WebServerClient
         appendLink(otherfiles, sb2);
         sb2.append("<hr>");
         sb2.append(sb);
-        //System.err.println(sb2.toString());
+        sb2.append("<br>Images: " + imageCtr + "<br>Videos " + vidCtr);
         return sb2.toString();
     }
 
@@ -181,31 +160,30 @@ class WebServerClient
 //        w.println("Content-Length: " + len);
 //        w.println();
 //    }
+
     /**
      * Send MP4 HTTP header
      *
-     * @param w Socket writer
-     * @param len File length
+     * @param w        Socket writer
+     * @param len      File length
      * @param filename name of file
      * @return FALSE if something goes wrong
      */
-    private boolean mp4Head(PrintWriter w, long len, String filename)
-    {
-        if (len <= 0)
-        {
+    private boolean mp4Head(NIOSocket w, long len, String filename) {
+        if (len <= 0) {
             return false;
         }
-        w.println("HTTP/1.1 200 OK");
-        w.println("Pragma: public");
-        w.println("Expires: 0");
-        w.println("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-        w.println("Cache-Control: public");
-        w.println("Content-Description: File Transfer");
-        w.println("Content-type: application/octet-stream");
-        w.println("Content-Disposition: attachment; filename=\"" + filename + "\"");
-        w.println("Content-Transfer-Encoding: binary");
-        w.println("Content-Length: " + len);
-        w.println();
+        w.write("HTTP/1.1 200 OK".getBytes(StandardCharsets.UTF_8));
+//        w.println("Pragma: public");
+//        w.println("Expires: 0");
+//        w.println("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+//        w.println("Cache-Control: public");
+//        w.println("Content-Description: File Transfer");
+//        w.println("Content-type: application/octet-stream");
+//        w.println("Content-Disposition: attachment; filename=\"" + filename + "\"");
+//        w.println("Content-Transfer-Encoding: binary");
+//        w.println("Content-Length: " + len);
+//        w.println();
         return true;
     }
 
@@ -215,15 +193,15 @@ class WebServerClient
      * @param out output stream
      * @param len size of image
      */
-    private void imgHead (OutputStream out, int len)
-    {
+    private void imgHead(NIOSocket out, int len) {
         String b = "HTTP/1.1 200 OK\n" +
                 "Content-Length: " + len + "\n" +
                 "Content-Type: image/jpeg\n" +
                 "Cache-Control: max-age=31536000, public\n" +
                 "Connection: close\n" +
                 "\n";
-        new PrintWriter (out).print (b);
+        out.write(b.getBytes(StandardCharsets.UTF_8));
+        //new PrintWriter(out).print(b);
     }
 
     /**
@@ -231,49 +209,35 @@ class WebServerClient
      *
      * @param out output stream
      */
-    private void sendJpegSmall (OutputStream out, String path) throws Exception
-    {
+    private void sendJpegSmall(NIOSocket out, String path) throws Exception {
         File f = new File(path);
-        byte[] b = ImageTools.reduceImg(f);
+        byte[] b = Tools.reduceImg(f);
         imgHead(out, b.length);
-        Transmitter t = new Transmitter(b, out);
-        t.doTransmission();
+        out.write(b);
     }
 
-    private void sendJpegOriginal(OutputStream out, String fname) throws IOException
-    {
+    private void sendJpegOriginal(NIOSocket out, String fname) throws IOException {
         File f = new File(fname);
-        InputStream input = new FileInputStream(f);
-        imgHead (out, (int) f.length());
-        Transmitter t = new Transmitter(input, out);
-        t.doTransmission();
+        byte[] b = Files.readAllBytes(f.toPath());
+        imgHead(out, (int) f.length());
+        out.write(b);
     }
 
     // not tested
-    private void sendMP4(OutputStream out, String fname) throws Exception
-    {
+    private void sendMP4(NIOSocket out, String fname) throws Exception {
         System.err.println("Sending MP4: " + fname);
         File f = new File(fname);
-        PrintWriter w = new PrintWriter(out);
-
+        byte[] b = Files.readAllBytes(f.toPath());
         InputStream input = new FileInputStream(f);
-        if (!mp4Head(w, f.length(), fname))
-        {
-            w.println("File too small");
-            w.close();
-        }
-        Transmitter t = new Transmitter(input, out);
-        t.doTransmission();
+        mp4Head(out, f.length(), fname);
+        out.write(b);
     }
 
-    private void sendZip(OutputStream out, String fname) throws IOException
-    {
+    private void sendZip(NIOSocket out, String fname) throws IOException {
         File f = new File(fname);
-        PrintWriter w = new PrintWriter(out);
-        InputStream input = new FileInputStream(f);
-        mp4Head(w, f.length(), fname);
-        Transmitter t = new Transmitter(input, out);
-        t.doTransmission();
+        byte[] b = Files.readAllBytes(f.toPath());
+        mp4Head(out, f.length(), fname);
+        out.write(b);
     }
 
     /**
@@ -281,90 +245,57 @@ class WebServerClient
      *
      * @param out Print Writer
      */
-    private void imagePage(OutputStream out, String path) throws Exception
-    {
-        String mp = buildMainPage(path);
-        if (mp == null)
-        {
-            //PrintWriter p = new PrintWriter (out);
+    private void sendImagePage (NIOSocket out, String path) throws Exception {
+        String mainPage = buildMainPage(path);
+        //out.write("HTTP/1.1 200 OK\r\n".getBytes(StandardCharsets.UTF_8));
+        if (mainPage == null) {
             textFile(out, path);
-            //p.close();
         }
         String txt = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
-                + mp
+                + mainPage
                 + "\r\n</html>";
         byte[] bt = txt.getBytes(Transformation.utf8);
         out.write(bt);
-        out.flush();
     }
 
-    private byte[] getTextFile(String file) throws IOException
-    {
+    private byte[] getTextFile(String file) throws IOException {
         Path p = Paths.get(file);
         return Files.readAllBytes(p);
     }
 
-    private void textFile (OutputStream os, String path) throws IOException
-    {
+    private void textFile(NIOSocket os, String path) throws IOException {
         byte[] b = getTextFile(path);
         String cnt = new String(b, StandardCharsets.UTF_8);
         String txt = "<html><pre>\r\n" + cnt + "</pre></html>";
-        new PrintStream(os).print(txt);
+        os.write(txt.getBytes(StandardCharsets.UTF_8));
     }
 
-    private String[] getInput(String in)
-    {
-//        while (in.ready() == false)
-//        {
-//            System.out.println("Tick");
-//            Thread.sleep(1000);
-//        }
-        return in.split(" ");
-    }
-    
-    void perform (String basePath, String cmd, OutputStream outputStream) throws Exception
-    {
-        outputStream = new BufferedOutputStream (outputStream);
-        String[] si = getInput(cmd);
-        String path = si[0].substring(1);
+    void perform(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
+        String[] si = cmd.split(" ");
+        String path = m_urltransform.retransform(si[0].substring(1));
 
-        path = m_urltransform.retransform(path);
-
-        if (path.equals("favicon.ico"))
-        {
-            Transmitter t = new Transmitter(Tools.getResourceAsStream(path), outputStream);
-            t.doTransmission();
-        }
-        else if (isImage(path))
-        {
-            if (path.startsWith("*IMG*"))
-            {
-                sendJpegOriginal(outputStream, path.substring(5));
+        if (isImage(path)) {
+            if (path.startsWith("*IMG*")) {
+                sendJpegOriginal(outputSocket, path.substring(5));
+            } else {
+                sendJpegSmall(outputSocket, path);
             }
-            else
-            {
-                sendJpegSmall(outputStream, path);
+        } else if (isZip(path)) {
+            sendZip(outputSocket, path);
+        } else if (isMP4(path)) {
+            sendMP4(outputSocket, path);
+        } else if (isText(path)) {
+            textFile(outputSocket, path);
+        }
+        else if (path.equals("favicon.ico")) {
+            byte[] bt = Tools.gatResourceAsArray(path);
+            outputSocket.write(bt);
+        }
+        else {
+            if (path.isEmpty()) {
+                path = imagePath;
             }
-        }
-        else if (isZip(path))
-        {
-            sendZip(outputStream, path);
-        }
-        else if (isMP4(path))
-        {
-            sendMP4(outputStream, path);
-        }
-        else if (isText(path))
-        {
-            textFile(outputStream, path);
-        }
-        else
-        {
-            if (path.isEmpty())
-            {
-                path = basePath;
-            }
-            imagePage(outputStream, path);
+            sendImagePage(outputSocket, path);
         }
     }
 }

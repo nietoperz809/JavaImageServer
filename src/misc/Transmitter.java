@@ -50,7 +50,7 @@ public class Transmitter
             int r = _in.read(buffer);
             if (r == -1)
             {
-                _out.flush();
+                //_out.flush();
                 break;
             }
             _out.write(buffer, 0, r);
