@@ -1,8 +1,11 @@
-ftp-port :: 21
-ftp-path :: C:\\
-ftp-start
+*** set ftp params and start ftp server ***
+* ftp-port :: 21
+* ftp-path :: C:\\
+* ftp-start
 
+
+*** set http params and start web server ***
 http-port :: 80
-http-path :: C:\\
+http-path :: C:\\Users\\Administrator\\Desktop\\feet
 http-start
 

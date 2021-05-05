@@ -8,7 +8,6 @@ package inetserver;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -17,7 +16,7 @@ import java.util.concurrent.Executors;
 /**
  * @author Administrator
  */
-public class Sockserver implements Runnable
+public class Sockserver
 {
     private final int port;
     private HttpServer server;
@@ -27,23 +26,11 @@ public class Sockserver implements Runnable
     {
         basePath = bp;
         port = p;
-        //new Thread(this).start();
-        run ();
-    }
-
-    public void halt ()
-    {
-        server.stop (5);
-    }
-
-    @Override
-    public void run ()
-    {
         server = null;
         try
         {
-            server = HttpServer.create (new InetSocketAddress (port), 10);
-            server.setExecutor (Executors.newFixedThreadPool (20)); // multiple Threads
+            server = HttpServer.create (new InetSocketAddress (port), 100);
+            server.setExecutor (Executors.newFixedThreadPool (100));
 
         } catch (IOException e)
         {
@@ -57,19 +44,24 @@ public class Sockserver implements Runnable
             OutputStream os = e.getResponseBody ();
             try
             {
+                //System.out.println("+"+Thread.currentThread().getId());
                 cl.perform (basePath, e.getRequestURI ().toString (), os);
+                //System.out.println("-"+Thread.currentThread().getId());
             }
             catch (Exception e1)
             {
-                System.out.println ("oops");
-                System.out.println (e1);
+                System.out.println ("oops"+e1);
             }
+            os.flush();
             os.close ();
         };
 
-        //for(int s=0; s<100; s++)
         server.createContext ("/", hnd);
-
         server.start ();
+    }
+
+    public void halt ()
+    {
+        server.stop (5);
     }
 }

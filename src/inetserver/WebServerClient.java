@@ -1,6 +1,7 @@
 package inetserver;
 
 import misc.ImageTools;
+import misc.Tools;
 import misc.Transmitter;
 import transform.Transformation;
 import transform.UrlEncodeUTF8;
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Objects;
 
 //import org.jetbrains.annotations.NotNull;
 
@@ -20,11 +22,7 @@ import java.util.ArrayList;
  */
 class WebServerClient
 {
-    //private final WebServerGUI _gui;
     private final UrlEncodeUTF8 m_urltransform;
-    //private volatile static int instances;
-
-    //public static final ExecutorService executor = Executors.newFixedThreadPool(20); // .newCachedThreadPool();
 
     /**
      * Constructor
@@ -33,7 +31,6 @@ class WebServerClient
     WebServerClient ()
     {
         m_urltransform = new UrlEncodeUTF8();
-        //_gui = g;
     }
 
     /**
@@ -144,7 +141,8 @@ class WebServerClient
                 sb.append(u8);
                 sb.append("\" target=\"_blank\"><img src=\"");
                 sb.append(u8);
-                sb.append("\" width=\"100\" height=\"100\"></a>\r\n");
+                sb.append("\"></a>\r\n");
+                //sb.append("\" width=\"100\" height=\"100\"></a>\r\n");
             }
             else if (isMP4(name))
             {
@@ -219,15 +217,13 @@ class WebServerClient
      */
     private void imgHead (OutputStream out, int len)
     {
-        StringBuilder b = new StringBuilder ();
-        b.append ("HTTP/1.1 200 OK\n");
-        b.append("Content-Length: ").append(len).append ("\n");
-        b.append("Content-Type: image/jpeg\n");
-        b.append("Cache-Control: max-age=31536000, public\n");
-        //w.println("Expires: 06 Apr 2020 19:25:30 GMT");
-        b.append("Connection: close\n");
-        b.append("\n");
-        new PrintWriter (out).print (b.toString ());
+        String b = "HTTP/1.1 200 OK\n" +
+                "Content-Length: " + len + "\n" +
+                "Content-Type: image/jpeg\n" +
+                "Cache-Control: max-age=31536000, public\n" +
+                "Connection: close\n" +
+                "\n";
+        new PrintWriter (out).print (b);
     }
 
     /**
@@ -238,19 +234,15 @@ class WebServerClient
     private void sendJpegSmall (OutputStream out, String path) throws Exception
     {
         File f = new File(path);
-        //PrintWriter w = new PrintWriter(out);
-        byte[] b = ImageTools.reduceImg(f, 0.2f);
+        byte[] b = ImageTools.reduceImg(f);
         imgHead(out, b.length);
         Transmitter t = new Transmitter(b, out);
         t.doTransmission();
-        //System.gc ();
-        //System.runFinalization ();
     }
 
     private void sendJpegOriginal(OutputStream out, String fname) throws IOException
     {
         File f = new File(fname);
-        //PrintWriter w = new PrintWriter (out);
         InputStream input = new FileInputStream(f);
         imgHead (out, (int) f.length());
         Transmitter t = new Transmitter(input, out);
@@ -330,39 +322,41 @@ class WebServerClient
         return in.split(" ");
     }
     
-    void perform (String basePath, String cmd, OutputStream os) throws Exception
+    void perform (String basePath, String cmd, OutputStream outputStream) throws Exception
     {
-        os = new BufferedOutputStream (os);
-        //PrintWriter out = new PrintWriter(os, true);
+        outputStream = new BufferedOutputStream (outputStream);
         String[] si = getInput(cmd);
         String path = si[0].substring(1);
 
         path = m_urltransform.retransform(path);
 
-        //String lowpath = path.toLowerCase();
-        if (isImage(path))
+        if (path.equals("favicon.ico"))
+        {
+            Transmitter t = new Transmitter(Tools.getResourceAsStream(path), outputStream);
+            t.doTransmission();
+        }
+        else if (isImage(path))
         {
             if (path.startsWith("*IMG*"))
             {
-                sendJpegOriginal(os, path.substring(5));
+                sendJpegOriginal(outputStream, path.substring(5));
             }
             else
             {
-                sendJpegSmall(os, path);
+                sendJpegSmall(outputStream, path);
             }
         }
         else if (isZip(path))
         {
-            sendZip(os, path);
+            sendZip(outputStream, path);
         }
         else if (isMP4(path))
         {
-            sendMP4(os, path);
+            sendMP4(outputStream, path);
         }
         else if (isText(path))
         {
-            textFile(os, path);
-            //System.out.println("text -- " + path);
+            textFile(outputStream, path);
         }
         else
         {
@@ -370,7 +364,7 @@ class WebServerClient
             {
                 path = basePath;
             }
-            imagePage(os, path);
+            imagePage(outputStream, path);
         }
     }
 }

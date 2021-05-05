@@ -1,15 +1,14 @@
 package misc;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
+import javax.imageio.*;
+import javax.imageio.stream.ImageInputStream;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,28 +86,21 @@ public class ImageTools
         return true;
     }
 
+    static ImageReader reader = ImageIO.getImageReadersByFormatName("jpg").next();
+
     /**
      * Reduces image quality
      *
      * @param path Path of jpeg file
-     * @param qual Quality 0.0 ... 1.0
      * @return byte array of jpeg data
      * @throws Exception
      */
-    public static byte[] reduceImg (File path, float qual) throws Exception
+    public static byte[] reduceImg (File path) throws Exception
     {
         BufferedImage image = ImageIO.read(path);
-        image = resizeImage(image, 100, 100);
+        BufferedImage image2 = resizeImage(image, 100, 100);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
-
-        ImageWriteParam param = writer.getDefaultWriteParam();
-        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(qual); // Change this, float between 0.0 and 1.0
-
-        writer.setOutput(ImageIO.createImageOutputStream(os));
-        writer.write(null, new IIOImage(image, null, null), param);
-        //writer.dispose();
+        ImageIO.write(image2, "jpg", os);
         return os.toByteArray();
     }
 
@@ -120,17 +112,22 @@ public class ImageTools
      * @param height        Height
      * @return new Image
      */
-    private static BufferedImage resizeImage (BufferedImage originalImage, int width, int height)
+    private static BufferedImage resizeImage (Image originalImage, int width, int height)
     {
         if (originalImage == null)
         {
             return null;
         }
-        int type =  BufferedImage.TYPE_INT_RGB;
-        BufferedImage resizedImage = new BufferedImage(width, height, type);
+        BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = resizedImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
+        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
+
         g.drawImage(originalImage, 0, 0, width, height, null);
         g.dispose();
+
         return resizedImage;
     }
 
