@@ -18,7 +18,6 @@ public class WebServerGUI extends JPanel
     private static final long serialVersionUID = 1L;
     private volatile NIOWebServer sockserver = null;
 
-
     /**
      * Constructor: creates new form WebServerGUI
      */
@@ -43,7 +42,7 @@ public class WebServerGUI extends JPanel
         portTxt = new JTextField();
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
-        button = new JToggleButton();
+        button = new JButton();
 
 //        setClosable(true);
 //        setIconifiable(true);
@@ -126,17 +125,16 @@ public class WebServerGUI extends JPanel
     {
         return pathTxt.getText();
     }
-    
-    
+
     private void buttonActionPerformed ()
     {
-        if (button.isSelected())
+        if (button.getBackground() == Color.GREEN) // selected
         {
-            start();
+            stop();
         }
         else
         {
-            stop();
+            start();
         }
     }
 
@@ -157,7 +155,7 @@ public class WebServerGUI extends JPanel
             int port = Integer.parseInt(portTxt.getText());
 
             sockserver = new NIOWebServer(port, pathTxt.getText());
-            new Thread(() -> sockserver.startServer()).start();
+            new Thread(() -> sockserver.runServer()).start();
 
             button.setText("stop");
             button.setBackground(Color.GREEN);
@@ -176,7 +174,7 @@ public class WebServerGUI extends JPanel
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private JToggleButton button;
+    private JButton button;
     private JTextField pathTxt;
     private JTextField portTxt;
 }

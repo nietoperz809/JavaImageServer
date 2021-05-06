@@ -34,8 +34,10 @@ import java.io.IOException;
  */
 public class NIOWebServer
 {
-	private int port;
-	private String basePath;
+	private final int port;
+	private final String basePath;
+	boolean stopFlag = false;
+	private NIOService service;
 
 	public NIOWebServer (int port, String basePath)
 	{
@@ -45,16 +47,15 @@ public class NIOWebServer
 
 	public void halt()
 	{
-		//TODO: implement
+		stopFlag = true;
+		service.close();
 	}
 
-	/**
-	 */
-	public void startServer ()
+	public void runServer()
 	{
 		try
 		{
-			NIOService service = new NIOService();
+			service = new NIOService();
 			NIOServerSocket socket = service.openServerSocket(port);
 			NIOWebServerClient client = new NIOWebServerClient();
 			socket.listen(new ServerSocketObserverAdapter()
@@ -67,8 +68,8 @@ public class NIOWebServer
 						public void packetReceived(NIOSocket socket, byte[] packet)
 						{
 							String http = new String(packet);
-							String lines[] = http.split("\r\n");
-							String words[] = lines[0].split(" ");
+							String[] lines = http.split("\r\n");
+							String[] words = lines[0].split(" ");
 							try {
 								client.perform(basePath, words[1], socket);
 							} catch (Exception e) {
@@ -87,6 +88,10 @@ public class NIOWebServer
 			socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
 			while (true)
 			{
+				if (stopFlag)
+				{
+					return;
+				}
 				service.selectBlocking();
 			}
 		}

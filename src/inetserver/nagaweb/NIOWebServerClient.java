@@ -124,8 +124,8 @@ class NIOWebServerClient {
                 sb.append(u8);
                 sb.append("\" target=\"_blank\"><img src=\"");
                 sb.append(u8);
-                sb.append("\"></a>\r\n");
-                //sb.append("\" width=\"100\" height=\"100\"></a>\r\n");
+                sb.append("\" title=\""+p.toString()+"\"");
+                sb.append("></a>\r\n");
             } else if (isMP4(name)) {
                 vidCtr++;
                 sb.append("<video controls src=\"");
@@ -201,7 +201,6 @@ class NIOWebServerClient {
                 "Connection: close\n" +
                 "\n";
         out.write(b.getBytes(StandardCharsets.UTF_8));
-        //new PrintWriter(out).print(b);
     }
 
     /**
