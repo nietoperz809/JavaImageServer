@@ -191,4 +191,7 @@ public interface NIOSocket extends NIOAbstractSocket
 	 * @return return the underlying socket.
 	 */
 	Socket socket();
+
+	boolean println(String s);
+
 }

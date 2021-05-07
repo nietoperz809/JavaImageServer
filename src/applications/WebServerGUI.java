@@ -10,19 +10,16 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- *
  * This is the GUI class for the web server
  */
-public class WebServerGUI extends JPanel
-{
+public class WebServerGUI extends JPanel {
     private static final long serialVersionUID = 1L;
     private volatile NIOWebServer sockserver = null;
 
     /**
      * Constructor: creates new form WebServerGUI
      */
-    public WebServerGUI ()
-    {
+    public WebServerGUI() {
         initComponents();
         button.setBackground(Color.RED);
     }
@@ -35,8 +32,7 @@ public class WebServerGUI extends JPanel
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
         pathTxt = new JTextField();
         portTxt = new JTextField();
@@ -53,119 +49,112 @@ public class WebServerGUI extends JPanel
 
         pathTxt.setText("F:\\\\");
 
-            portTxt.setText("80");
+        portTxt.setText("80");
 
-            jLabel1.setText("BasePath");
+        jLabel1.setText("BasePath");
 
-            jLabel2.setText("Port");
+        jLabel2.setText("Port");
 
-            button.setText("Start");
-            button.setDoubleBuffered(true);
-            button.addActionListener(evt -> buttonActionPerformed());
+        button.setText("Start");
+        button.setDoubleBuffered(true);
+        button.addActionListener(evt -> buttonActionPerformed());
 
 
-            GroupLayout layout = new GroupLayout(this);
-            this.setLayout(layout);
-            layout.setHorizontalGroup(
+        GroupLayout layout = new GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
                         .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel2)
-                            .addGap(18, 18, 18)
-                            .addComponent(portTxt))
-                        .addComponent(jLabel1)
-                        .addGroup(layout.createSequentialGroup()
-                            //.addComponent(jLabel3)
-                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
-                            //.addComponent(buffSizeTxt, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE)))
-                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(17, 17, 17)
-                            //.addComponent(transmitted, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            //.addComponent(jLabel4)
-                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            //.addComponent(fileTime, GroupLayout.PREFERRED_SIZE, 99, GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(button, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
-                        .addComponent(pathTxt))
-                    .addContainerGap())
-            );
-            layout.setVerticalGroup(
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jLabel2)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(portTxt))
+                                        .addComponent(jLabel1)
+                                        .addGroup(layout.createSequentialGroup()
+                                                //.addComponent(jLabel3)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                                //.addComponent(buffSizeTxt, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGap(17, 17, 17)
+                                                //.addComponent(transmitted, GroupLayout.PREFERRED_SIZE, 111, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                //.addComponent(jLabel4)
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                //.addComponent(fileTime, GroupLayout.PREFERRED_SIZE, 99, GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(button, GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE))
+                                        .addComponent(pathTxt))
+                                .addContainerGap())
+        );
+        layout.setVerticalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel1)
-                        .addComponent(pathTxt, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                    .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel2)
-                                .addComponent(portTxt, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                                //.addComponent(transmitted, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                                //.addComponent(fileTime)
-                                //.addComponent(jLabel4))
-                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE))
-                                //.addComponent(jLabel3))
-                                //.addComponent(buffSizeTxt, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                            .addGap(0, 3, Short.MAX_VALUE))
-                        .addComponent(button, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addContainerGap())
-            );
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel1)
+                                        .addComponent(pathTxt, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(jLabel2)
+                                                        .addComponent(portTxt, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                //.addComponent(transmitted, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                                                //.addComponent(fileTime)
+                                                //.addComponent(jLabel4))
+                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE))
+                                                //.addComponent(jLabel3))
+                                                //.addComponent(buffSizeTxt, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                                                .addGap(0, 3, Short.MAX_VALUE))
+                                        .addComponent(button, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap())
+        );
 
-            //pack();
-        }// </editor-fold>//GEN-END:initComponents
+        //pack();
+    }// </editor-fold>//GEN-END:initComponents
 
 
-    public String getBasePath()
-    {
+    public String getBasePath() {
         return pathTxt.getText();
     }
 
-    private void buttonActionPerformed ()
-    {
+    private void buttonActionPerformed() {
         if (button.getBackground() == Color.GREEN) // selected
         {
             stop();
-        }
-        else
-        {
+        } else {
             start();
         }
     }
 
-    public void setPathTxt (String pathTxt)
-    {
+    public void setPathTxt(String pathTxt) {
         this.pathTxt.setText(pathTxt);
     }
 
-    public void setPortTxt (String portTxt)
-    {
+    public void setPortTxt(String portTxt) {
         this.portTxt.setText(portTxt);
     }
 
-    public void start()
-    {
-        if (sockserver == null)
-        {
+    public void start() {
+        if (sockserver == null) {
             int port = Integer.parseInt(portTxt.getText());
 
             sockserver = new NIOWebServer(port, pathTxt.getText());
-            new Thread(() -> sockserver.runServer()).start();
+            new Thread(() -> {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                sockserver.runServer();
+            }).start();
 
             button.setText("stop");
             button.setBackground(Color.GREEN);
         }
     }
 
-    public void stop ()
-    {
-        if (sockserver != null)
-        {
+    public void stop() {
+        if (sockserver != null) {
             sockserver.halt();
             sockserver = null;
             button.setText("start");

@@ -32,7 +32,18 @@ class NIOWebServerClient {
      * @return TRUE if file is named .mp4
      */
     private boolean isMP4(String in) {
-        return in.toLowerCase().endsWith(".mp4");
+        in = in.toLowerCase();
+        return in.endsWith(".mp4") ||
+                in.endsWith(".mkv") ||
+                in.endsWith(".webm") ||
+                in.endsWith(".ogv") ||
+                in.endsWith(".3gp");
+    }
+
+    private boolean isMP3(String in) {
+        in = in.toLowerCase();
+        return in.endsWith(".mp3") ||
+                in.endsWith(".ogg");
     }
 
     /**
@@ -124,15 +135,21 @@ class NIOWebServerClient {
                 sb.append(u8);
                 sb.append("\" target=\"_blank\"><img src=\"");
                 sb.append(u8);
-                sb.append("\" title=\""+p.toString()+"\"");
+                sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
                 sb.append("></a>\r\n");
             } else if (isMP4(name)) {
                 vidCtr++;
-                sb.append("<video controls src=\"");
+                sb.append("<video width=\"320\" height=\"240\" controls src=\"");
                 sb.append(u8).append("\">");
                 sb.append("Your user agent does not support the HTML5 Video element.</video>");
                 sb.append("\r\n");
-            } else if (isText(name) || isZip(name)) {
+            } else if (isMP3(name)) {
+                sb.append("<audio controls src=\"");
+                sb.append(u8).append("\">");
+                sb.append("Your user agent does not support the HTML5 Video element.</audio>");
+                sb.append("\r\n");
+            }
+            else if (isText(name) || isZip(name)) {
                 txtfiles.add(p);
             } else
                 otherfiles.add(p);
@@ -142,7 +159,7 @@ class NIOWebServerClient {
         appendLink(otherfiles, sb2);
         sb2.append("<hr>");
         sb2.append(sb);
-        sb2.append("<br>Images: " + imageCtr + "<br>Videos " + vidCtr);
+        sb2.append("<br>Images: ").append(imageCtr).append("<br>Videos ").append(vidCtr);
         return sb2.toString();
     }
 
@@ -163,28 +180,24 @@ class NIOWebServerClient {
 
     /**
      * Send MP4 HTTP header
-     *
-     * @param w        Socket writer
+     *  @param w        Socket writer
      * @param len      File length
-     * @param filename name of file
-     * @return FALSE if something goes wrong
      */
-    private boolean mp4Head(NIOSocket w, long len, String filename) {
+    private void mp4Head(NIOSocket w, long len, String filename) {
         if (len <= 0) {
-            return false;
+            return;
         }
-        w.write("HTTP/1.1 200 OK".getBytes(StandardCharsets.UTF_8));
-//        w.println("Pragma: public");
-//        w.println("Expires: 0");
-//        w.println("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-//        w.println("Cache-Control: public");
-//        w.println("Content-Description: File Transfer");
-//        w.println("Content-type: application/octet-stream");
-//        w.println("Content-Disposition: attachment; filename=\"" + filename + "\"");
-//        w.println("Content-Transfer-Encoding: binary");
-//        w.println("Content-Length: " + len);
-//        w.println();
-        return true;
+        w.println("HTTP/1.1 200 OK");
+        w.println("Pragma: public");
+        w.println("Expires: 0");
+        w.println("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+        w.println("Cache-Control: public");
+        w.println("Content-Description: File Transfer");
+        w.println("Content-type: application/octet-stream");
+        w.println("Content-Disposition: attachment; filename=\"" + filename + "\"");
+        w.println("Content-Transfer-Encoding: binary");
+        w.println("Content-Length: " + len);
+        w.println("");
     }
 
     /**
@@ -223,8 +236,18 @@ class NIOWebServerClient {
     }
 
     // not tested
-    private void sendMP4(NIOSocket out, String fname) throws Exception {
-        System.err.println("Sending MP4: " + fname);
+    private void sendMedia(NIOSocket out, String fname) throws Exception {
+        System.out.println("Sending media: " + fname);
+        File f = new File(fname);
+        byte[] b = Files.readAllBytes(f.toPath());
+        InputStream input = new FileInputStream(f);
+        mp4Head(out, f.length(), fname);
+        out.write(b);
+    }
+
+    // not tested
+    private void sendMP3(NIOSocket out, String fname) throws Exception {
+        System.out.println("Sending MP4: " + fname);
         File f = new File(fname);
         byte[] b = Files.readAllBytes(f.toPath());
         InputStream input = new FileInputStream(f);
@@ -246,27 +269,25 @@ class NIOWebServerClient {
      */
     private void sendImagePage (NIOSocket out, String path) throws Exception {
         String mainPage = buildMainPage(path);
-        //out.write("HTTP/1.1 200 OK\r\n".getBytes(StandardCharsets.UTF_8));
         if (mainPage == null) {
-            textFile(out, path);
+            mainPage = formatTextFile(path);
         }
-        String txt = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
+        String txt = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
                 + mainPage
                 + "\r\n</html>";
         byte[] bt = txt.getBytes(Transformation.utf8);
         out.write(bt);
     }
 
-    private byte[] getTextFile(String file) throws IOException {
+    private byte[] loadTextFile(String file) throws IOException {
         Path p = Paths.get(file);
         return Files.readAllBytes(p);
     }
 
-    private void textFile(NIOSocket os, String path) throws IOException {
-        byte[] b = getTextFile(path);
+    private String formatTextFile(String path) throws IOException {
+        byte[] b = loadTextFile(path);
         String cnt = new String(b, StandardCharsets.UTF_8);
-        String txt = "<html><pre>\r\n" + cnt + "</pre></html>";
-        os.write(txt.getBytes(StandardCharsets.UTF_8));
+        return "<pre>\r\n" + cnt + "</pre>";
     }
 
     void perform(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
@@ -282,9 +303,13 @@ class NIOWebServerClient {
         } else if (isZip(path)) {
             sendZip(outputSocket, path);
         } else if (isMP4(path)) {
-            sendMP4(outputSocket, path);
-        } else if (isText(path)) {
-            textFile(outputSocket, path);
+            sendMedia(outputSocket, path);
+        } else if (isMP3(path)) {
+            sendMedia(outputSocket, path);
+        }
+        else if (isText(path)) {
+            String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile(path)+"</html>";
+            outputSocket.write (s.getBytes(StandardCharsets.UTF_8));
         }
         else if (path.equals("favicon.ico")) {
             byte[] bt = Tools.gatResourceAsArray(path);

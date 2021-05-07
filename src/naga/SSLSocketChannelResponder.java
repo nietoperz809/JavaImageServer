@@ -144,6 +144,11 @@ class SSLSocketChannelResponder implements NIOSocketSSL, SocketObserver
         return m_wrappedSocket.socket();
     }
 
+    @Override
+    public boolean println(String s) {
+        return m_wrappedSocket.println(s);
+    }
+
     public void close()
     {
         m_wrappedSocket.close();

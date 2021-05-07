@@ -29,6 +29,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -104,6 +105,13 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket
 	{
         return write(packet, null);
 	}
+
+	public boolean println (String in)
+	{
+		in = in + "\r\n";
+		return write(in.getBytes(StandardCharsets.UTF_8), null);
+	}
+
 
 	public boolean isConnected()
 	{

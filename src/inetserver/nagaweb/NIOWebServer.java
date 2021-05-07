@@ -32,73 +32,57 @@ import java.io.IOException;
  *
  * @author Christoffer Lerno
  */
-public class NIOWebServer
-{
-	private final int port;
-	private final String basePath;
-	boolean stopFlag = false;
-	private NIOService service;
+public class NIOWebServer {
+    private final int port;
+    private final String basePath;
+    private NIOService service;
 
-	public NIOWebServer (int port, String basePath)
-	{
-		this.port = port;
-		this.basePath = basePath;
-	}
+    public NIOWebServer(int port, String basePath) {
+        this.port = port;
+        this.basePath = basePath;
+    }
 
-	public void halt()
-	{
-		stopFlag = true;
-		service.close();
-	}
+    public void halt() {
+        service.close();
+    }
 
-	public void runServer()
-	{
-		try
-		{
-			service = new NIOService();
-			NIOServerSocket socket = service.openServerSocket(port);
-			NIOWebServerClient client = new NIOWebServerClient();
-			socket.listen(new ServerSocketObserverAdapter()
-			{
-				public void newConnection(NIOSocket nioSocket)
-				{
-					System.out.println("Client " + nioSocket.getIp() + " connected.");
-					nioSocket.listen(new SocketObserverAdapter()
-					{
-						public void packetReceived(NIOSocket socket, byte[] packet)
-						{
-							String http = new String(packet);
-							String[] lines = http.split("\r\n");
-							String[] words = lines[0].split(" ");
-							try {
-								client.perform(basePath, words[1], socket);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-							socket.closeAfterWrite();
-						}
+    public void runServer() {
+        try {
+            service = new NIOService();
+            NIOServerSocket socket = service.openServerSocket(port);
+            NIOWebServerClient client = new NIOWebServerClient();
+            socket.listen(new ServerSocketObserverAdapter() {
+                public void newConnection(NIOSocket nioSocket) {
+                    System.out.println("Client " + nioSocket.getIp() + " connected.");
+                    nioSocket.listen(new SocketObserverAdapter() {
+                        public void packetReceived(NIOSocket socket, byte[] packet) {
+                            String http = new String(packet);
+                            String[] lines = http.split("\r\n");
+                            String[] words = lines[0].split(" ");
+                            try {
+                                client.perform(basePath, words[1], socket);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            socket.closeAfterWrite();
+                        }
 
-						public void connectionBroken(NIOSocket nioSocket, Exception exception)
-						{
-							System.out.println("Client " + nioSocket.getIp() + " disconnected.");
-						}
-					});
-				}
-			});
-			socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
-			while (true)
-			{
-				if (stopFlag)
-				{
-					return;
-				}
-				service.selectBlocking();
-			}
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-	}
+                        public void connectionBroken(NIOSocket nioSocket, Exception exception) {
+                            System.out.println("Client " + nioSocket.getIp() + " disconnected.");
+                        }
+                    });
+                }
+            });
+            socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
+            while (true) {
+                if (!service.isOpen()) {
+                    return;
+                }
+                service.selectBlocking();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
