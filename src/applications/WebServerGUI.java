@@ -139,7 +139,7 @@ public class WebServerGUI extends JPanel implements OnOffButtonHandlers {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private OnOffButton button;
+    public OnOffButton button;
     private JTextField pathTxt;
     private JTextField portTxt;
 }

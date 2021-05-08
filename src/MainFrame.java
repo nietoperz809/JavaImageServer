@@ -4,8 +4,6 @@ import misc.ConfigFile;
 import misc.Tools;
 
 import javax.swing.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.IOException;
 
 class MainFrame
@@ -33,10 +31,10 @@ class MainFrame
         ConfigFile cf = new ConfigFile("serversettings.txt");
         cf.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
         cf.setAction("ftp-path", strings -> ftp.setPathTxt(strings[0]));
-        cf.setAction("ftp-start", strings -> ftp.start());
+        cf.setAction("ftp-start", strings -> ftp.button.fakeClick());
         cf.setAction("http-port", strings -> web.setPortTxt(strings[0]));
         cf.setAction("http-path", strings -> web.setPathTxt(strings[0]));
-        cf.setAction("http-start", strings -> web.start());
+        cf.setAction("http-start", strings -> web.button.fakeClick());
         try
         {
             cf.execute();

@@ -17,8 +17,7 @@ import java.awt.*;
  */
 public class FtpServerGUI extends JPanel implements OnOffButtonHandlers {
     private volatile PittiFtpServer ftp = null;
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private OnOffButton button;
+    public OnOffButton button;
     private javax.swing.JTextField pathTxt;
     private javax.swing.JTextField portTxt;
 
