@@ -4,10 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 
 public class OnOffButton extends JButton {
-    private final OnOffButtonHandlers handlers;
+    private final OnOffButtonAction onAction;
+    private final OnOffButtonAction offAction;
 
-    public OnOffButton(OnOffButtonHandlers handlers) {
-        this.handlers = handlers;
+    public OnOffButton (OnOffButtonAction on, OnOffButtonAction off) {
+        onAction = on;
+        offAction = off;
         setText("START");
         setBackground(Color.RED);
         addActionListener(e -> fakeClick());
@@ -17,19 +19,11 @@ public class OnOffButton extends JButton {
         if (getBackground() == Color.RED) {
             setText("STOP");
             setBackground(Color.GREEN);
-            try {
-                handlers.start();
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
+            onAction.doIt();
         } else {
             setText("START");
             setBackground(Color.RED);
-            try {
-                handlers.stop();
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
+            offAction.doIt();
         }
     }
 }
