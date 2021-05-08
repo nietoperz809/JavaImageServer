@@ -5,6 +5,7 @@ package applications;/*
  */
 
 import inetserver.nagaweb.NIOWebServer;
+import misc.OnOffButton;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,27 +39,14 @@ public class WebServerGUI extends JPanel {
         portTxt = new JTextField();
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
-        button = new JButton();
+        button = new OnOffButton (this::start, this::stop);
 
-//        setClosable(true);
-//        setIconifiable(true);
-//        setMaximizable(true);
-//        setResizable(true);
-//        setTitle("Webserver");
         setVisible(true);
 
-        pathTxt.setText("F:\\\\");
-
-        portTxt.setText("80");
-
         jLabel1.setText("BasePath");
-
         jLabel2.setText("Port");
 
-        button.setText("Start");
         button.setDoubleBuffered(true);
-        button.addActionListener(evt -> buttonActionPerformed());
-
 
         GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
@@ -117,18 +105,10 @@ public class WebServerGUI extends JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
 
-    public String getBasePath() {
-        return pathTxt.getText();
-    }
+//    public String getBasePath() {
+//        return pathTxt.getText();
+//    }
 
-    private void buttonActionPerformed() {
-        if (button.getBackground() == Color.GREEN) // selected
-        {
-            stop();
-        } else {
-            start();
-        }
-    }
 
     public void setPathTxt(String pathTxt) {
         this.pathTxt.setText(pathTxt);
@@ -138,7 +118,7 @@ public class WebServerGUI extends JPanel {
         this.portTxt.setText(portTxt);
     }
 
-    public void start() {
+    public Void start() {
         if (sockserver == null) {
             int port = Integer.parseInt(portTxt.getText());
 
@@ -147,23 +127,20 @@ public class WebServerGUI extends JPanel {
                 Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 sockserver.runServer();
             }).start();
-
-            button.setText("stop");
-            button.setBackground(Color.GREEN);
         }
+        return null;
     }
 
-    public void stop() {
+    public Void stop() {
         if (sockserver != null) {
             sockserver.halt();
             sockserver = null;
-            button.setText("start");
-            button.setBackground(Color.RED);
         }
+        return null;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private JButton button;
+    private OnOffButton button;
     private JTextField pathTxt;
     private JTextField portTxt;
 }

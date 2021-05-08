@@ -6,6 +6,7 @@
 package applications;
 
 import inetserver.PittiFtpServer;
+import misc.OnOffButton;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +17,7 @@ import java.awt.*;
 public class FtpServerGUI extends JPanel {
     private volatile PittiFtpServer ftp = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JToggleButton button;
+    private OnOffButton button;
     private javax.swing.JTextField pathTxt;
     private javax.swing.JTextField portTxt;
 
@@ -41,17 +42,13 @@ public class FtpServerGUI extends JPanel {
         portTxt = new javax.swing.JTextField();
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
-        button = new javax.swing.JToggleButton();
+        button = new OnOffButton (this::start, this::stop);
 
         setVisible(true);
 
         jLabel1.setText("BasePath");
-
         jLabel2.setText("Port");
-
         button.setText("Start");
-        button.addActionListener(this::buttonActionPerformed);
-
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -94,16 +91,15 @@ public class FtpServerGUI extends JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    public void stop() {
+    public Void stop() {
         if (ftp != null) {
             ftp.stop();
             ftp = null;
-            button.setText("start");
-            button.setBackground(Color.RED);
         }
+        return null;
     }
 
-    public void start() {
+    public Void start() {
         if (ftp == null) {
             ftp = new PittiFtpServer(pathTxt.getText(), Integer.parseInt(portTxt.getText()));
 
@@ -111,18 +107,8 @@ public class FtpServerGUI extends JPanel {
                 Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 ftp.start();
             }).start();
-
-            button.setText("stop");
-            button.setBackground(Color.GREEN);
         }
-    }
-
-    private void buttonActionPerformed(java.awt.event.ActionEvent evt) {
-        if (button.isSelected()) {
-            start();
-        } else {
-            stop();
-        }
+        return null;
     }
 
     public void setPathTxt(String pathTxt) {
