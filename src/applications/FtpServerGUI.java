@@ -11,19 +11,19 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- *
  * @author Administrator
  */
-public class FtpServerGUI extends JPanel
-{
+public class FtpServerGUI extends JPanel {
     private volatile PittiFtpServer ftp = null;
-
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JToggleButton button;
+    private javax.swing.JTextField pathTxt;
+    private javax.swing.JTextField portTxt;
 
     /**
      * Creates new form WebServerGUI
      */
-    public FtpServerGUI ()
-    {
+    public FtpServerGUI() {
         initComponents();
         button.setBackground(Color.RED);
     }
@@ -35,75 +35,67 @@ public class FtpServerGUI extends JPanel
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
 
-        pathTxt = new javax.swing.JTextField("G:\\");
+        pathTxt = new javax.swing.JTextField();
         portTxt = new javax.swing.JTextField();
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
         button = new javax.swing.JToggleButton();
 
-//        setResizable(true);
-//        setTitle("FtpServer");
         setVisible(true);
-        //pathTxt.setText("C:\\\\");
 
-            portTxt.setText("21");
+        jLabel1.setText("BasePath");
 
-            jLabel1.setText("BasePath");
+        jLabel2.setText("Port");
 
-            jLabel2.setText("Port");
-
-            button.setText("Start");
-            button.addActionListener(this::buttonActionPerformed);
+        button.setText("Start");
+        button.addActionListener(this::buttonActionPerformed);
 
 
-            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-            this.setLayout(layout);
-            layout.setHorizontalGroup(
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                            .addComponent(jLabel2)
-                            .addGap(34, 34, 34)))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(pathTxt)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(portTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(38, 38, 38)
-                            //.addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 74, Short.MAX_VALUE)
-                            .addComponent(button, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addContainerGap())
-            );
-            layout.setVerticalGroup(
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jLabel1)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addComponent(jLabel2)
+                                                .addGap(34, 34, 34)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(pathTxt)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addComponent(portTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(38, 38, 38)
+                                                //.addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 74, Short.MAX_VALUE)
+                                                .addComponent(button, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addContainerGap())
+        );
+        layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel1)
-                        .addComponent(pathTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel2)
-                                .addComponent(portTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                //.addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGap(0, 15, Short.MAX_VALUE))
-                        .addComponent(button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addContainerGap())
-            );
-        }// </editor-fold>//GEN-END:initComponents
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel1)
+                                        .addComponent(pathTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(jLabel2)
+                                                        .addComponent(portTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                //.addComponent(transmitted, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                .addGap(0, 15, Short.MAX_VALUE))
+                                        .addComponent(button, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap())
+        );
+    }// </editor-fold>//GEN-END:initComponents
 
-    public void stop ()
-    {
-        if (ftp != null)
-        {
+    public void stop() {
+        if (ftp != null) {
             ftp.stop();
             ftp = null;
             button.setText("start");
@@ -111,44 +103,33 @@ public class FtpServerGUI extends JPanel
         }
     }
 
-    public void start()
-    {
-        if (ftp == null)
-        {
+    public void start() {
+        if (ftp == null) {
             ftp = new PittiFtpServer(pathTxt.getText(), Integer.parseInt(portTxt.getText()));
-            ftp.start();
+
+            new Thread(() -> {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                ftp.start();
+            }).start();
+
             button.setText("stop");
             button.setBackground(Color.GREEN);
         }
     }
 
-    private void buttonActionPerformed(java.awt.event.ActionEvent evt)
-    {
-        if (button.isSelected())
-        {
+    private void buttonActionPerformed(java.awt.event.ActionEvent evt) {
+        if (button.isSelected()) {
             start();
-        }
-        else
-        {
+        } else {
             stop();
         }
     }
 
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JToggleButton button;
-    private javax.swing.JTextField pathTxt;
-    private javax.swing.JTextField portTxt;
-
-    public void setPathTxt (String  pathTxt)
-    {
+    public void setPathTxt(String pathTxt) {
         this.pathTxt.setText(pathTxt);
     }
 
-    public void setPortTxt (String portTxt)
-    {
+    public void setPortTxt(String portTxt) {
         this.portTxt.setText(portTxt);
     }
-// End of variables declaration//GEN-END:variables
-
 }

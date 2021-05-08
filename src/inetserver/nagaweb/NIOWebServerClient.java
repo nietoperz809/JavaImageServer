@@ -24,65 +24,34 @@ import java.util.ArrayList;
 class NIOWebServerClient {
     private final UrlEncodeUTF8 m_urltransform = new UrlEncodeUTF8();
 
-
-    /**
-     * Is File MP4
-     *
-     * @param in file name
-     * @return TRUE if file is named .mp4
-     */
-    private boolean isMP4(String in) {
+    boolean isExtension(String in, String... ext) {
         in = in.toLowerCase();
-        return in.endsWith(".mp4") ||
-                in.endsWith(".mkv") ||
-                in.endsWith(".webm") ||
-                in.endsWith(".ogv") ||
-                in.endsWith(".3gp");
+        for (String s : ext) {
+            s = s.toLowerCase();
+            if (in.endsWith(s))
+                return true;
+        }
+        return false;
     }
 
-    private boolean isMP3(String in) {
-        in = in.toLowerCase();
-        return in.endsWith(".mp3") ||
-                in.endsWith(".ogg");
+    private boolean isVideo(String in) {
+        return isExtension(in, ".mp4", ".mkv", ".webm", ".ogv", ".3gp");
     }
 
-    /**
-     * Is File Jpeg?
-     *
-     * @param in file name
-     * @return TRUE if file is jpeg
-     */
+    private boolean isAudio(String in) {
+        return isExtension(in, ".mp3", ".ogg", ".wav");
+    }
+
     private boolean isImage(String in) {
-        in = in.toLowerCase();
-        return in.endsWith(".jpg") ||
-                in.endsWith(".jpeg") ||
-                in.endsWith(".png") ||
-                in.endsWith(".bmp");
+        return isExtension(in, ".jpg", ".jpeg", ".png", ".bmp");
     }
 
-    /**
-     * Is File Zip?
-     *
-     * @param in file name
-     * @return TRUE if file is zip
-     */
     private boolean isZip(String in) {
-        in = in.toLowerCase();
-        return in.endsWith(".zip") || in.endsWith(".rar");
+        return isExtension(in, ".zip");
     }
 
-    /**
-     * Is Text file
-     *
-     * @param in file name
-     * @return TRUE if file is text file
-     */
     private boolean isText(String in) {
-        in = in.toLowerCase();
-        return in.endsWith(".txt") || in.endsWith(".c")
-                || in.endsWith(".cpp")
-                || in.endsWith(".h") || in.endsWith(".cxx")
-                || in.endsWith(".hxx") || in.endsWith(".java");
+        return isExtension(in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 
     private void appendLink(ArrayList<Path> list, StringBuilder sb) {
@@ -137,19 +106,20 @@ class NIOWebServerClient {
                 sb.append(u8);
                 sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
                 sb.append("></a>\r\n");
-            } else if (isMP4(name)) {
+            } else if (isVideo(name)) {
                 vidCtr++;
                 sb.append("<video width=\"320\" height=\"240\" controls src=\"");
                 sb.append(u8).append("\">");
-                sb.append("Your user agent does not support the HTML5 Video element.</video>");
+                sb.append("HTML5 Video not supported</video>");
                 sb.append("\r\n");
-            } else if (isMP3(name)) {
-                sb.append("<audio controls src=\"");
+            } else if (isAudio(name)) {
+                sb.append("<figure><figcaption>");
+                sb.append(p.getFileName().toString());
+                sb.append("</figcaption><audio controls src=\"");
                 sb.append(u8).append("\">");
-                sb.append("Your user agent does not support the HTML5 Video element.</audio>");
+                sb.append("HTML5 Audio not supported</audio></figure>");
                 sb.append("\r\n");
-            }
-            else if (isText(name) || isZip(name)) {
+            } else if (isText(name) || isZip(name)) {
                 txtfiles.add(p);
             } else
                 otherfiles.add(p);
@@ -180,8 +150,9 @@ class NIOWebServerClient {
 
     /**
      * Send MP4 HTTP header
-     *  @param w        Socket writer
-     * @param len      File length
+     *
+     * @param w   Socket writer
+     * @param len File length
      */
     private void mp4Head(NIOSocket w, long len, String filename) {
         if (len <= 0) {
@@ -267,7 +238,7 @@ class NIOWebServerClient {
      *
      * @param out Print Writer
      */
-    private void sendImagePage (NIOSocket out, String path) throws Exception {
+    private void sendImagePage(NIOSocket out, String path) throws Exception {
         String mainPage = buildMainPage(path);
         if (mainPage == null) {
             mainPage = formatTextFile(path);
@@ -302,20 +273,17 @@ class NIOWebServerClient {
             }
         } else if (isZip(path)) {
             sendZip(outputSocket, path);
-        } else if (isMP4(path)) {
+        } else if (isVideo(path)) {
             sendMedia(outputSocket, path);
-        } else if (isMP3(path)) {
+        } else if (isAudio(path)) {
             sendMedia(outputSocket, path);
-        }
-        else if (isText(path)) {
-            String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile(path)+"</html>";
-            outputSocket.write (s.getBytes(StandardCharsets.UTF_8));
-        }
-        else if (path.equals("favicon.ico")) {
+        } else if (isText(path)) {
+            String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile(path) + "</html>";
+            outputSocket.write(s.getBytes(StandardCharsets.UTF_8));
+        } else if (path.equals("favicon.ico")) {
             byte[] bt = Tools.gatResourceAsArray(path);
             outputSocket.write(bt);
-        }
-        else {
+        } else {
             if (path.isEmpty()) {
                 path = imagePath;
             }

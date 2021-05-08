@@ -5,21 +5,13 @@
  */
 package inetserver;
 
-import org.apache.ftpserver.FtpServer;
-import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.*;
-import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.usermanager.ClearTextPasswordEncryptor;
-import org.apache.ftpserver.usermanager.PropertiesUserManagerFactory;
-import org.apache.ftpserver.usermanager.impl.BaseUser;
-import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
-import org.apache.ftpserver.usermanager.impl.TransferRatePermission;
-import org.apache.ftpserver.usermanager.impl.WritePermission;
+import minimalftp.FTPServer;
+import minimalftp.impl.NativeFileSystem;
+import minimalftp.impl.NoOpAuthenticator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+
 
 /**
  *
@@ -27,121 +19,48 @@ import java.util.Map;
  */
 public class PittiFtpServer
 {
-    private final FtpServer ftpServer;
+    private final String basedir;
+    private FTPServer server;
+    private int port;
 
-    private class Pittilet implements Ftplet
-    {
-        @Override
-        public void init(FtpletContext fc)
-        {
-            FtpletContext _fc = fc;
-            System.out.println("ftp init: ");
-        }
-
-        @Override
-        public void destroy()
-        {
-            System.out.println("ftp destroy");
-        }
-
-        @Override
-        public FtpletResult beforeCommand(FtpSession fs, FtpRequest fr)
-        {
-            System.out.println("ftp before: "+fr.getCommand());
-            return FtpletResult.DEFAULT;
-        }
-
-        @Override
-        public FtpletResult afterCommand(FtpSession fs, FtpRequest fr, FtpReply fr1)
-        {
-            System.out.println("ftp after: "+fr.getCommand());
-            return FtpletResult.DEFAULT;
-        }
-
-        @Override
-        public FtpletResult onConnect(FtpSession fs)
-        {
-            System.out.println("ftp connect: "+fs.toString());
-            return FtpletResult.DEFAULT;
-        }
-
-        @Override
-        public FtpletResult onDisconnect(FtpSession fs)
-        {
-            System.out.println("ftp disconnect: "+fs.getSessionId());
-            return FtpletResult.DEFAULT;
-        }
-    }
-    
     /**
      * @param path
      * @param port
      */
     public PittiFtpServer (String path, int port)
     {
-        FtpServerFactory serverFactory = new FtpServerFactory();
-        ListenerFactory factory = new ListenerFactory();
-        factory.setPort(port);
-        
-        //Ftplet ftplet = new Pittilet();
-        Map<String,Ftplet> ftpmap = new HashMap<>();
-        ftpmap.put("ftp1", new Pittilet());
-        ftpmap.put("ftp2", new Pittilet());
-        ftpmap.put("ftp3", new Pittilet());
-        ftpmap.put("ftp4", new Pittilet());
-        serverFactory.setFtplets(ftpmap);
-        
-        //java.util.Map<java.lang.String,Ftplet> ftplets = serverFactory.getFtplets();
-        //System.out.println(ftplets);
-        serverFactory.addListener("default", factory.createListener());
-        PropertiesUserManagerFactory userManagerFactory = new PropertiesUserManagerFactory();
-        userManagerFactory.setPasswordEncryptor(new ClearTextPasswordEncryptor());
-        UserManager um = userManagerFactory.createUserManager();
-        BaseUser user = new BaseUser();
-        user.setName("anonymous");
-        user.setPassword("");
-        user.setEnabled(true);
-        user.setHomeDirectory(path);
-        List<Authority> authorities = new ArrayList<>();
-        authorities.add(new WritePermission());
-        authorities.add(new ConcurrentLoginPermission(0, 0));
-        authorities.add(new TransferRatePermission(0, 0));
-        user.setAuthorities(authorities);
-        try
-        {
-            um.save(user);
-        }
-        catch (FtpException ex)
-        {
-            System.out.println("init exception "+ex.getMessage());
-            ftpServer = null;
-            return;
-        }
-        serverFactory.setUserManager(um);
-        ftpServer = serverFactory.createServer();
+        this.port = port;
+        this.basedir = path;
+
     }
 
     public void stop()
     {
-        if (ftpServer == null)
-            return;
-        ftpServer.stop();
+        try {
+            server.close();
+            server = null;
+        } catch (IOException e) {
+            System.out.println("can't stop ftp: "+e);
+        }
     }
-  
-//    public boolean isRunning()
-//    {
-//        return !(ftpServer.isStopped() | ftpServer.isSuspended());
-//    }
-    
+
     public void start()
     {
-        try
-        {
-            ftpServer.start();
-        }
-        catch (Exception ex)
-        {
-            System.out.println("start exception "+ex.getMessage());
+        if (server != null)
+            return;
+        // Start listening synchronously
+        try {
+            // Uses the current working directory as the root
+            File root = new File(basedir);
+            // Creates a native file system
+            NativeFileSystem fs = new NativeFileSystem(root);
+            // Creates a noop authenticator
+            NoOpAuthenticator auth = new NoOpAuthenticator(fs);
+            // Creates the server with the authenticator
+            server = new FTPServer(auth);
+            server.listenSync(port);
+        } catch (IOException e) {
+            System.out.println("can't start ftp: "+e);
         }
     }
 }
