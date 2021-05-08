@@ -6,6 +6,7 @@ package applications;/*
 
 import inetserver.nagaweb.NIOWebServer;
 import misc.OnOffButton;
+import misc.OnOffButtonHandlers;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +14,7 @@ import java.awt.*;
 /**
  * This is the GUI class for the web server
  */
-public class WebServerGUI extends JPanel {
+public class WebServerGUI extends JPanel implements OnOffButtonHandlers {
     private static final long serialVersionUID = 1L;
     private volatile NIOWebServer sockserver = null;
 
@@ -39,7 +40,7 @@ public class WebServerGUI extends JPanel {
         portTxt = new JTextField();
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
-        button = new OnOffButton (this::start, this::stop);
+        button = new OnOffButton (this);
 
         setVisible(true);
 
@@ -118,7 +119,7 @@ public class WebServerGUI extends JPanel {
         this.portTxt.setText(portTxt);
     }
 
-    public Void start() {
+    public void start() {
         if (sockserver == null) {
             int port = Integer.parseInt(portTxt.getText());
 
@@ -128,15 +129,13 @@ public class WebServerGUI extends JPanel {
                 sockserver.runServer();
             }).start();
         }
-        return null;
     }
 
-    public Void stop() {
+    public void stop() {
         if (sockserver != null) {
             sockserver.halt();
             sockserver = null;
         }
-        return null;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

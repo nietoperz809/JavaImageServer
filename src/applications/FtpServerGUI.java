@@ -7,6 +7,7 @@ package applications;
 
 import inetserver.PittiFtpServer;
 import misc.OnOffButton;
+import misc.OnOffButtonHandlers;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +15,7 @@ import java.awt.*;
 /**
  * @author Administrator
  */
-public class FtpServerGUI extends JPanel {
+public class FtpServerGUI extends JPanel implements OnOffButtonHandlers {
     private volatile PittiFtpServer ftp = null;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private OnOffButton button;
@@ -42,7 +43,7 @@ public class FtpServerGUI extends JPanel {
         portTxt = new javax.swing.JTextField();
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
-        button = new OnOffButton (this::start, this::stop);
+        button = new OnOffButton (this);
 
         setVisible(true);
 
@@ -91,15 +92,14 @@ public class FtpServerGUI extends JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    public Void stop() {
+    public void stop() {
         if (ftp != null) {
             ftp.stop();
             ftp = null;
         }
-        return null;
     }
 
-    public Void start() {
+    public void start() {
         if (ftp == null) {
             ftp = new PittiFtpServer(pathTxt.getText(), Integer.parseInt(portTxt.getText()));
 
@@ -108,7 +108,6 @@ public class FtpServerGUI extends JPanel {
                 ftp.start();
             }).start();
         }
-        return null;
     }
 
     public void setPathTxt(String pathTxt) {

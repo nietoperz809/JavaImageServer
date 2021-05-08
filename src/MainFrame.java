@@ -25,6 +25,8 @@ class MainFrame
 
         jf.add(tabpane);
         jf.pack();
+        jf.setResizable(false);
+        jf.setLocationRelativeTo(null);
         jf.setVisible(true);
 
         // Exec config file
