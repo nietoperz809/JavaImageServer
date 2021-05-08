@@ -4,10 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 
 public class OnOffButton extends JButton {
-    private final OnOffButtonAction onAction;
-    private final OnOffButtonAction offAction;
+    private final ButtonAction onAction;
+    private final ButtonAction offAction;
 
-    public OnOffButton (OnOffButtonAction on, OnOffButtonAction off) {
+    @FunctionalInterface
+    public interface ButtonAction {
+        void doIt();
+    }
+
+    public OnOffButton (ButtonAction on, ButtonAction off) {
         onAction = on;
         offAction = off;
         setText("START");
