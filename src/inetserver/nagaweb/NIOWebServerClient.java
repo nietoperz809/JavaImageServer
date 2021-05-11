@@ -60,6 +60,8 @@ class NIOWebServerClient {
         }
     }
 
+    ArrayList<String> imageList = new ArrayList<>();
+
     /**
      * Build HTML page for directory
      *
@@ -91,6 +93,7 @@ class NIOWebServerClient {
 
         Arrays.sort(fileList, Comparator.comparingLong(File::lastModified)); // Sort by date
 
+        imageList.clear();
         for (File fil : fileList) {
             String name = fil.getName();
             Path p = Paths.get(path, name);
@@ -98,14 +101,15 @@ class NIOWebServerClient {
             if (fil.isDirectory()) {
                 dirs.add(p);
             } else if (isImage(name)) {
-                imageCtr++;
+                imageList.add (p.toString());
                 sb.append("<a href=\"");
                 sb.append("*IMG*");
-                sb.append(u8);
+                sb.append(imageCtr).append(".jpg");
                 sb.append("\" target=\"_blank\"><img src=\"");
-                sb.append(u8);
+                sb.append(imageCtr).append(".jpg");
                 sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
                 sb.append("></a>\r\n");
+                imageCtr++;
             } else if (isVideo(name)) {
                 vidCtr++;
                 sb.append("<video width=\"320\" height=\"240\" controls src=\"");
@@ -264,12 +268,16 @@ class NIOWebServerClient {
     void perform(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
         String[] si = cmd.split(" ");
         String path = UrlEncodeUTF8.retransform(si[0].substring(1));
-
         if (isImage(path)) {
+            path = path.substring (0, path.length()-4);
             if (path.startsWith("*IMG*")) {
-                sendJpegOriginal(outputSocket, path.substring(5));
+                int index = Integer.parseInt(path.substring(5));
+                String file = imageList.get(index);
+                sendJpegOriginal(outputSocket, file);
             } else {
-                sendJpegSmall(outputSocket, path);
+                int index = Integer.parseInt(path);
+                String file = imageList.get(index);
+                sendJpegSmall(outputSocket, file);
             }
         } else if (isZip(path)) {
             sendZip(outputSocket, path);
