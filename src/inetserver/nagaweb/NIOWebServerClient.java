@@ -3,18 +3,17 @@ package inetserver.nagaweb;
 
 import misc.Tools;
 import naga.NIOSocket;
-import transform.Transformation;
 import transform.UrlEncodeUTF8;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 
 //import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +21,6 @@ import java.util.ArrayList;
  * @author Administrator
  */
 class NIOWebServerClient {
-    private final UrlEncodeUTF8 m_urltransform = new UrlEncodeUTF8();
 
     boolean isExtension(String in, String... ext) {
         in = in.toLowerCase();
@@ -56,7 +54,7 @@ class NIOWebServerClient {
 
     private void appendLink(ArrayList<Path> list, StringBuilder sb) {
         for (Path p : list) {
-            String u8 = m_urltransform.transform(p.toString());
+            String u8 = UrlEncodeUTF8.transform(p.toString());
             sb.append("<a href=\"").append(u8).append("\">");
             sb.append(p.getFileName().toString()).append("</a>").append("<br>\r\n");
         }
@@ -72,9 +70,9 @@ class NIOWebServerClient {
         File f = new File(path);
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
-        File[] fils = f.listFiles();
+        File[] fileList = f.listFiles();
 
-        if (fils == null) {
+        if (fileList == null) {
             return null;
         }
 
@@ -84,17 +82,19 @@ class NIOWebServerClient {
 
         Path pp = Paths.get(path).getParent();
         if (pp != null) {
-            String u8 = m_urltransform.transform(pp.toString());
+            String u8 = UrlEncodeUTF8.transform(pp.toString());
             sb2.append("<a href=\"").append(u8).append("\">");
             sb2.append("*BACK*").append("</a>").append("<hr>\r\n");
         }
         int imageCtr = 0;
         int vidCtr = 0;
 
-        for (File fil : fils) {
+        Arrays.sort(fileList, Comparator.comparingLong(File::lastModified)); // Sort by date
+
+        for (File fil : fileList) {
             String name = fil.getName();
             Path p = Paths.get(path, name);
-            String u8 = m_urltransform.transform(p.toString());
+            String u8 = UrlEncodeUTF8.transform(p.toString());
             if (fil.isDirectory()) {
                 dirs.add(p);
             } else if (isImage(name)) {
@@ -211,20 +211,20 @@ class NIOWebServerClient {
         System.out.println("Sending media: " + fname);
         File f = new File(fname);
         byte[] b = Files.readAllBytes(f.toPath());
-        InputStream input = new FileInputStream(f);
         mp4Head(out, f.length(), fname);
         out.write(b);
     }
 
-    // not tested
-    private void sendMP3(NIOSocket out, String fname) throws Exception {
-        System.out.println("Sending MP4: " + fname);
-        File f = new File(fname);
-        byte[] b = Files.readAllBytes(f.toPath());
-        InputStream input = new FileInputStream(f);
-        mp4Head(out, f.length(), fname);
-        out.write(b);
-    }
+// --Commented out by Inspection START (5/9/2021 7:02 PM):
+//    // not tested
+//    private void sendMP3(NIOSocket out, String fname) throws Exception {
+//        System.out.println("Sending MP4: " + fname);
+//        File f = new File(fname);
+//        byte[] b = Files.readAllBytes(f.toPath());
+//        mp4Head(out, f.length(), fname);
+//        out.write(b);
+//    }
+// --Commented out by Inspection STOP (5/9/2021 7:02 PM)
 
     private void sendZip(NIOSocket out, String fname) throws IOException {
         File f = new File(fname);
@@ -246,7 +246,7 @@ class NIOWebServerClient {
         String txt = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
                 + mainPage
                 + "\r\n</html>";
-        byte[] bt = txt.getBytes(Transformation.utf8);
+        byte[] bt = txt.getBytes(UrlEncodeUTF8.utf8);
         out.write(bt);
     }
 
@@ -263,7 +263,7 @@ class NIOWebServerClient {
 
     void perform(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
         String[] si = cmd.split(" ");
-        String path = m_urltransform.retransform(si[0].substring(1));
+        String path = UrlEncodeUTF8.retransform(si[0].substring(1));
 
         if (isImage(path)) {
             if (path.startsWith("*IMG*")) {
