@@ -16,12 +16,32 @@ class MainFrame
     private static final String settingFile = "serversettings.txt";
     private static boolean dirty = false;
 
+    private static FtpServerGUI ftp = new FtpServerGUI();
+    private static WebServerGUI web = new WebServerGUI();
+    private static ConfigGUI config = new ConfigGUI();
+
+    private static void loadConfiguration()
+    {
+        ConfigFile cf = new ConfigFile(settingFile);
+        cf.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
+        cf.setAction("ftp-path", strings -> ftp.setPathTxt(strings[0]));
+        cf.setAction("ftp-start", strings -> ftp.button.fakeClick());
+        cf.setAction("http-port", strings -> web.setPortTxt(strings[0]));
+        cf.setAction("http-path", strings -> web.setPathTxt(strings[0]));
+        cf.setAction("http-start", strings -> web.button.fakeClick());
+        try
+        {
+            cf.execute();
+        }
+        catch (IOException e)
+        {
+            System.out.println("CFG file read error");;
+        }
+    }
+
     private static void start()
     {
         JFrame jf = new JFrame("InetServer");
-        FtpServerGUI ftp = new FtpServerGUI();
-        WebServerGUI web = new WebServerGUI();
-        ConfigGUI config = new ConfigGUI();
 
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         jf.setIconImage(Tools.getImageFromResource("favicon.ico"));
@@ -45,6 +65,7 @@ class MainFrame
                     try {
                         String confTxt = config.getTextPanel().getText();
                         Files.write (Paths.get(settingFile), confTxt.getBytes());
+                        loadConfiguration();
                         dirty = false;
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
@@ -60,21 +81,7 @@ class MainFrame
         jf.setVisible(true);
 
         // Exec config file
-        ConfigFile cf = new ConfigFile(settingFile);
-        cf.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
-        cf.setAction("ftp-path", strings -> ftp.setPathTxt(strings[0]));
-        cf.setAction("ftp-start", strings -> ftp.button.fakeClick());
-        cf.setAction("http-port", strings -> web.setPortTxt(strings[0]));
-        cf.setAction("http-path", strings -> web.setPathTxt(strings[0]));
-        cf.setAction("http-start", strings -> web.button.fakeClick());
-        try
-        {
-            cf.execute();
-        }
-        catch (IOException e)
-        {
-            System.out.println("CFG file read error");;
-        }
+        loadConfiguration();
     }
 
     public static void main (String[] args)

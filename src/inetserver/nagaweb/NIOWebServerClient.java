@@ -15,14 +15,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
-//import org.jetbrains.annotations.NotNull;
-
 /**
  * @author Administrator
  */
 class NIOWebServerClient {
 
-    boolean isExtension(String in, String... ext) {
+    boolean hasExtension(String in, String... ext) {
         in = in.toLowerCase();
         for (String s : ext) {
             s = s.toLowerCase();
@@ -33,23 +31,23 @@ class NIOWebServerClient {
     }
 
     private boolean isVideo(String in) {
-        return isExtension(in, ".mp4", ".mkv", ".webm", ".ogv", ".3gp");
+        return hasExtension(in, ".mp4", ".mkv", ".webm", ".ogv", ".3gp");
     }
 
     private boolean isAudio(String in) {
-        return isExtension(in, ".mp3", ".ogg", ".wav");
+        return hasExtension(in, ".mp3", ".ogg", ".wav");
     }
 
     private boolean isImage(String in) {
-        return isExtension(in, ".jpg", ".jpeg", ".png", ".bmp");
+        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp");
     }
 
     private boolean isZip(String in) {
-        return isExtension(in, ".zip");
+        return hasExtension(in, ".zip");
     }
 
     private boolean isText(String in) {
-        return isExtension(in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
+        return hasExtension(in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 
     private void appendLink(ArrayList<Path> list, StringBuilder sb) {
@@ -60,7 +58,7 @@ class NIOWebServerClient {
         }
     }
 
-    ArrayList<String> imageList = new ArrayList<>();
+    File[] fileList;
 
     /**
      * Build HTML page for directory
@@ -72,11 +70,11 @@ class NIOWebServerClient {
         File f = new File(path);
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
-        File[] fileList = f.listFiles();
-
+        fileList = f.listFiles();
         if (fileList == null) {
             return null;
         }
+        Arrays.sort(fileList, Comparator.comparingLong(File::lastModified)); // Sort by date
 
         ArrayList<Path> dirs = new ArrayList<>();
         ArrayList<Path> txtfiles = new ArrayList<>();
@@ -91,25 +89,21 @@ class NIOWebServerClient {
         int imageCtr = 0;
         int vidCtr = 0;
 
-        Arrays.sort(fileList, Comparator.comparingLong(File::lastModified)); // Sort by date
-
-        imageList.clear();
-        for (File fil : fileList) {
+        for (int idx = 0; idx < fileList.length; idx++) {
+            File fil = fileList[idx];
             String name = fil.getName();
             Path p = Paths.get(path, name);
             String u8 = UrlEncodeUTF8.transform(p.toString());
             if (fil.isDirectory()) {
                 dirs.add(p);
             } else if (isImage(name)) {
-                imageList.add (p.toString());
+                imageCtr++;
                 sb.append("<a href=\"");
-                sb.append("*IMG*");
-                sb.append(imageCtr).append(".jpg");
+                sb.append("*IMG*").append(idx).append(".jpg");
                 sb.append("\" target=\"_blank\"><img src=\"");
-                sb.append(imageCtr).append(".jpg");
+                sb.append(idx).append(".jpg");
                 sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
                 sb.append("></a>\r\n");
-                imageCtr++;
             } else if (isVideo(name)) {
                 vidCtr++;
                 sb.append("<video width=\"320\" height=\"240\" controls src=\"");
@@ -268,16 +262,15 @@ class NIOWebServerClient {
     void perform(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
         String[] si = cmd.split(" ");
         String path = UrlEncodeUTF8.retransform(si[0].substring(1));
+
         if (isImage(path)) {
-            path = path.substring (0, path.length()-4);
+            path = path.substring(0, path.lastIndexOf('.'));
             if (path.startsWith("*IMG*")) {
-                int index = Integer.parseInt(path.substring(5));
-                String file = imageList.get(index);
-                sendJpegOriginal(outputSocket, file);
+                int idx = Integer.parseInt(path.substring(5));
+                sendJpegOriginal(outputSocket, fileList[idx].getAbsolutePath());
             } else {
-                int index = Integer.parseInt(path);
-                String file = imageList.get(index);
-                sendJpegSmall(outputSocket, file);
+                int idx = Integer.parseInt(path);
+                sendJpegSmall(outputSocket, fileList[idx].getAbsolutePath());
             }
         } else if (isZip(path)) {
             sendZip(outputSocket, path);

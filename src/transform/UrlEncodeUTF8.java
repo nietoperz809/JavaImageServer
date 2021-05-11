@@ -8,17 +8,17 @@ package transform;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
  * @author Administrator
  */
-public class UrlEncodeUTF8 implements Transformation
+public class UrlEncodeUTF8
 {
-    @Override
-    public String transform(String in)
+    static public final String utf8 = StandardCharsets.UTF_8.name();
+
+    public static String transform(String in)
     {
         try
         {
@@ -26,13 +26,11 @@ public class UrlEncodeUTF8 implements Transformation
         }
         catch (UnsupportedEncodingException ex)
         {
-            Logger.getLogger(UrlEncodeUTF8.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
         }
-        return null;
     }
 
-    @Override
-    public String retransform(String in)
+    public static String retransform(String in)
     {
         try
         {
@@ -40,9 +38,8 @@ public class UrlEncodeUTF8 implements Transformation
         }
         catch (UnsupportedEncodingException ex)
         {
-            Logger.getLogger(UrlEncodeUTF8.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
         }
-        return null;
     }
     
 }

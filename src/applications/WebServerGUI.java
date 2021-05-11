@@ -9,6 +9,9 @@ import misc.OnOffButton;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * This is the GUI class for the web server
@@ -116,6 +119,12 @@ public class WebServerGUI extends JPanel {
 
             sockserver = new NIOWebServer(port, pathTxt.getText());
             new Thread(() -> {
+                String url = "http://localhost:"+portTxt.getText();
+                try {
+                    Desktop.getDesktop().browse(new URI(url));
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
                 Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 sockserver.runServer();
             }).start();
