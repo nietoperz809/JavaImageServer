@@ -19,7 +19,7 @@ import java.util.Comparator;
  * @author Administrator
  */
 class NIOWebServerClient {
-
+    int pathHash;
     File[] fileList;
     static final String BIGIMAGE = "*IMG*";
     static final String NUMSEP = "@";
@@ -69,7 +69,7 @@ class NIOWebServerClient {
      * @return html page
      */
     private String buildMainPage(String path) {
-        int hc = path.hashCode();
+        pathHash = path.hashCode();
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
         fileList = new File(path).listFiles();
@@ -104,7 +104,7 @@ class NIOWebServerClient {
                 sb.append("show.html?img=").append(idx);
                 //sb.append(BIGIMAGE).append(idx).append(".jpg");
                 sb.append("\" target=\"_blank\"><img src=\"");
-                sb.append(hc).append(NUMSEP).append(idx).append(".jpg");
+                sb.append(pathHash).append(NUMSEP).append(idx).append(".jpg");
                 sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
                 sb.append("></a>\r\n");
             } else if (isVideo(name)) {
@@ -182,8 +182,9 @@ class NIOWebServerClient {
         String b = "HTTP/1.1 200 OK\n" +
                 "Content-Length: " + len + "\n" +
                 "Content-Type: image/jpeg\n" +
-                "Cache-Control: max-age=31536000, public\n" +
-                "Connection: close\n" +
+                "Cache-Control: max-age=31536000, public"+
+                "Cache-Control: max-age=31536000, public" +
+                "\nConnection: close\n" +
                 "\n";
         out.write(b.getBytes(StandardCharsets.UTF_8));
     }
@@ -239,9 +240,16 @@ class NIOWebServerClient {
         out.write(bt);
     }
 
+    //                 sb.append(pathHash).append(NUMSEP).append(idx).append(".jpg");
     private void sendImagePage(NIOSocket out, String path) throws Exception {
-        String img = BIGIMAGE+path.substring(path.indexOf("?img=")+5)+".jpg";
-        String body ="<img src=\""+img+"\">";
+        String body;
+        if (fileList == null)
+            body = "<h1>Please reload gallery page</h1>";
+        else
+        {
+            String img = BIGIMAGE+path.substring(path.indexOf("?img=")+5)+NUMSEP+pathHash+".jpg";
+            body ="<img src=\""+img+"\">";
+        }
         String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
                 + "<body>"+body+"</body>"
                 + "\r\n</html>";
@@ -266,6 +274,8 @@ class NIOWebServerClient {
         if (isImage(path)) {
             path = path.substring(0, path.lastIndexOf('.'));
             if (path.startsWith(BIGIMAGE)) {
+                // "*IMG*2@-1334024114.jpg"></body>
+                path = path.substring(0, path.indexOf(NUMSEP));
                 int idx = Integer.parseInt(path.substring(5));
                 sendJpegOriginal(outputSocket, fileList[idx].getAbsolutePath());
             } else {
