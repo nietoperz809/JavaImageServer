@@ -101,7 +101,8 @@ class NIOWebServerClient {
             } else if (isImage(name)) {
                 imageCtr++;
                 sb.append("<a href=\"");
-                sb.append(BIGIMAGE).append(idx).append(".jpg");
+                sb.append("show.html?img=").append(idx);
+                //sb.append(BIGIMAGE).append(idx).append(".jpg");
                 sb.append("\" target=\"_blank\"><img src=\"");
                 sb.append(hc).append(NUMSEP).append(idx).append(".jpg");
                 sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
@@ -226,16 +227,25 @@ class NIOWebServerClient {
      *
      * @param out Print Writer
      */
-    private void sendImagePage(NIOSocket out, String path) throws Exception {
+    private void sendGalleryPage(NIOSocket out, String path) throws Exception {
         String mainPage = buildMainPage(path);
         if (mainPage == null) {
             mainPage = formatTextFile(path);
         }
         String txt = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
-                + mainPage
+                + "<body>"+mainPage+"</body>"
                 + "\r\n</html>";
         byte[] bt = txt.getBytes(UrlEncodeUTF8.utf8);
         out.write(bt);
+    }
+
+    private void sendImagePage(NIOSocket out, String path) throws Exception {
+        String img = BIGIMAGE+path.substring(path.indexOf("?img=")+5)+".jpg";
+        String body ="<img src=\""+img+"\">";
+        String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
+                + "<body>"+body+"</body>"
+                + "\r\n</html>";
+        out.write(http.getBytes(UrlEncodeUTF8.utf8));
     }
 
     private byte[] loadTextFile(String file) throws IOException {
@@ -275,11 +285,13 @@ class NIOWebServerClient {
         } else if (path.equals("favicon.ico")) {
             byte[] bt = Tools.gatResourceAsArray(path);
             outputSocket.write(bt);
+        } else if (path.startsWith("show.html")) {
+            sendImagePage(outputSocket, path);
         } else {
             if (path.isEmpty()) {
                 path = imagePath;
             }
-            sendImagePage(outputSocket, path);
+            sendGalleryPage(outputSocket, path);
         }
     }
 }
