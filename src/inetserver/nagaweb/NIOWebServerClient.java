@@ -20,6 +20,10 @@ import java.util.Comparator;
  */
 class NIOWebServerClient {
 
+    File[] fileList;
+    static final String BIGIMAGE = "*IMG*";
+    static final String NUMSEP = "@";
+
     boolean hasExtension(String in, String... ext) {
         in = in.toLowerCase();
         for (String s : ext) {
@@ -39,7 +43,7 @@ class NIOWebServerClient {
     }
 
     private boolean isImage(String in) {
-        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp");
+        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp", "gif");
     }
 
     private boolean isZip(String in) {
@@ -58,8 +62,6 @@ class NIOWebServerClient {
         }
     }
 
-    File[] fileList;
-
     /**
      * Build HTML page for directory
      *
@@ -67,10 +69,10 @@ class NIOWebServerClient {
      * @return html page
      */
     private String buildMainPage(String path) {
-        File f = new File(path);
+        int hc = path.hashCode();
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
-        fileList = f.listFiles();
+        fileList = new File(path).listFiles();
         if (fileList == null) {
             return null;
         }
@@ -99,9 +101,9 @@ class NIOWebServerClient {
             } else if (isImage(name)) {
                 imageCtr++;
                 sb.append("<a href=\"");
-                sb.append("*IMG*").append(idx).append(".jpg");
+                sb.append(BIGIMAGE).append(idx).append(".jpg");
                 sb.append("\" target=\"_blank\"><img src=\"");
-                sb.append(idx).append(".jpg");
+                sb.append(hc).append(NUMSEP).append(idx).append(".jpg");
                 sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
                 sb.append("></a>\r\n");
             } else if (isVideo(name)) {
@@ -204,7 +206,6 @@ class NIOWebServerClient {
         out.write(b);
     }
 
-    // not tested
     private void sendMedia(NIOSocket out, String fname) throws Exception {
         System.out.println("Sending media: " + fname);
         File f = new File(fname);
@@ -212,17 +213,6 @@ class NIOWebServerClient {
         mp4Head(out, f.length(), fname);
         out.write(b);
     }
-
-// --Commented out by Inspection START (5/9/2021 7:02 PM):
-//    // not tested
-//    private void sendMP3(NIOSocket out, String fname) throws Exception {
-//        System.out.println("Sending MP4: " + fname);
-//        File f = new File(fname);
-//        byte[] b = Files.readAllBytes(f.toPath());
-//        mp4Head(out, f.length(), fname);
-//        out.write(b);
-//    }
-// --Commented out by Inspection STOP (5/9/2021 7:02 PM)
 
     private void sendZip(NIOSocket out, String fname) throws IOException {
         File f = new File(fname);
@@ -265,10 +255,11 @@ class NIOWebServerClient {
 
         if (isImage(path)) {
             path = path.substring(0, path.lastIndexOf('.'));
-            if (path.startsWith("*IMG*")) {
+            if (path.startsWith(BIGIMAGE)) {
                 int idx = Integer.parseInt(path.substring(5));
                 sendJpegOriginal(outputSocket, fileList[idx].getAbsolutePath());
             } else {
+                path = path.substring(path.indexOf(NUMSEP)+1);
                 int idx = Integer.parseInt(path);
                 sendJpegSmall(outputSocket, fileList[idx].getAbsolutePath());
             }

@@ -11,13 +11,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * This is the GUI class for the web server
  */
 public class WebServerGUI extends JPanel {
     private static final long serialVersionUID = 1L;
+    public boolean browser_startflag;
     private volatile NIOWebServer sockserver = null;
 
     /**
@@ -116,14 +116,15 @@ public class WebServerGUI extends JPanel {
     public void start() {
         if (sockserver == null) {
             int port = Integer.parseInt(portTxt.getText());
-
             sockserver = new NIOWebServer(port, pathTxt.getText());
             new Thread(() -> {
                 String url = "http://localhost:"+portTxt.getText();
-                try {
-                    Desktop.getDesktop().browse(new URI(url));
-                } catch (Exception e) {
-                    System.out.println(e);
+                if (browser_startflag) {
+                    try {
+                        Desktop.getDesktop().browse(new URI(url));
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                 }
                 Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 sockserver.runServer();

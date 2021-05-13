@@ -29,6 +29,7 @@ class MainFrame
         cf.setAction("http-port", strings -> web.setPortTxt(strings[0]));
         cf.setAction("http-path", strings -> web.setPathTxt(strings[0]));
         cf.setAction("http-start", strings -> web.button.fakeClick());
+        cf.setAction("http-browser-start", strings -> web.browser_startflag = true);
         try
         {
             cf.execute();
