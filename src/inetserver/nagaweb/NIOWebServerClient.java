@@ -19,10 +19,10 @@ import java.util.Comparator;
  * @author Administrator
  */
 class NIOWebServerClient {
-    int pathHash;
-    File[] fileList;
-    static final String BIGIMAGE = "*IMG*";
-    static final String NUMSEP = "@";
+    private static final String BIGIMAGE = "*IMG*";
+    private static final String NUMSEP = "@";
+    private int pathHash;
+    private File[] fileList;
 
     boolean hasExtension(String in, String... ext) {
         in = in.toLowerCase();
@@ -72,6 +72,7 @@ class NIOWebServerClient {
         pathHash = path.hashCode();
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
+
         fileList = new File(path).listFiles();
         if (fileList == null) {
             return null;
@@ -194,22 +195,19 @@ class NIOWebServerClient {
      *
      * @param out output stream
      */
-    private void sendJpegSmall(NIOSocket out, String path) throws Exception {
-        File f = new File(path);
+    private void sendJpegSmall(NIOSocket out, File f) throws Exception {
         byte[] b = Tools.reduceImg(f);
         imgHead(out, b.length);
         out.write(b);
     }
 
-    private void sendJpegOriginal(NIOSocket out, String fname) throws IOException {
-        File f = new File(fname);
+    private void sendJpegOriginal(NIOSocket out, File f) throws IOException {
         byte[] b = Files.readAllBytes(f.toPath());
         imgHead(out, (int) f.length());
         out.write(b);
     }
 
     private void sendMedia(NIOSocket out, String fname) throws Exception {
-        System.out.println("Sending media: " + fname);
         File f = new File(fname);
         byte[] b = Files.readAllBytes(f.toPath());
         mp4Head(out, f.length(), fname);
@@ -223,6 +221,14 @@ class NIOWebServerClient {
         out.write(b);
     }
 
+    private void sendHttpBody (String content, NIOSocket out) throws Exception
+    {
+        String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
+                + "<body>"+content+"</body>"
+                + "\r\n</html>";
+        out.write(http.getBytes(UrlEncodeUTF8.utf8));
+    }
+
     /**
      * send image page
      *
@@ -233,14 +239,9 @@ class NIOWebServerClient {
         if (mainPage == null) {
             mainPage = formatTextFile(path);
         }
-        String txt = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
-                + "<body>"+mainPage+"</body>"
-                + "\r\n</html>";
-        byte[] bt = txt.getBytes(UrlEncodeUTF8.utf8);
-        out.write(bt);
+        sendHttpBody(mainPage, out);
     }
 
-    //                 sb.append(pathHash).append(NUMSEP).append(idx).append(".jpg");
     private void sendImagePage(NIOSocket out, String path) throws Exception {
         String body;
         if (fileList == null)
@@ -248,12 +249,9 @@ class NIOWebServerClient {
         else
         {
             String img = BIGIMAGE+path.substring(path.indexOf("?img=")+5)+NUMSEP+pathHash+".jpg";
-            body ="<img src=\""+img+"\">";
+            body ="<img src=\""+img+"\" style=\"width: 100%;\" />";
         }
-        String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
-                + "<body>"+body+"</body>"
-                + "\r\n</html>";
-        out.write(http.getBytes(UrlEncodeUTF8.utf8));
+        sendHttpBody(body, out);
     }
 
     private byte[] loadTextFile(String file) throws IOException {
@@ -274,14 +272,13 @@ class NIOWebServerClient {
         if (isImage(path)) {
             path = path.substring(0, path.lastIndexOf('.'));
             if (path.startsWith(BIGIMAGE)) {
-                // "*IMG*2@-1334024114.jpg"></body>
                 path = path.substring(0, path.indexOf(NUMSEP));
                 int idx = Integer.parseInt(path.substring(5));
-                sendJpegOriginal(outputSocket, fileList[idx].getAbsolutePath());
+                sendJpegOriginal(outputSocket, fileList[idx]);
             } else {
                 path = path.substring(path.indexOf(NUMSEP)+1);
                 int idx = Integer.parseInt(path);
-                sendJpegSmall(outputSocket, fileList[idx].getAbsolutePath());
+                sendJpegSmall(outputSocket, fileList[idx]);
             }
         } else if (isZip(path)) {
             sendZip(outputSocket, path);
