@@ -73,14 +73,35 @@ class NIOWebServerClient {
         return str;
     }
 
-    private String createForwardLink (int idx)
+    private String myscript = "document.onkeydown = checkKey;\n" +
+            "\n" +
+            "function checkKey(e) {\n" +
+            "\n" +
+            "    e = e || window.event;\n" +
+            "\n" +
+            "    if (e.keyCode == '37') {\n" +
+            "       prv.click()\n" +
+            "    }\n" +
+            "    else if (e.keyCode == '39') {\n" +
+            "       nxt.click()\n" +
+            "    }\n" +
+            "\n" +
+            "}";
+
+    private String createNavigationLink (int idx, boolean back)
     {
-        idx++;
-        if (idx == fileList.length)
+        idx = back ? idx-1 : idx+1;
+        if (idx == -1)
+            idx = fileList.length-1;
+        else if (idx == fileList.length)
             idx = 0;
-        String str = "<a href=\""
+        String str = "<a id=\""
+                + (back ? "prv" : "nxt")
+                + "\" href=\""
                 + "show.html?img="+idx
-                + "\" target=\"_self\">NEXT</a>\r\n";
+                + "\" target=\"_self\">"
+                + (back ? "PREV" : "NEXT")
+                +"</a>\r\n";
         return str;
     }
 
@@ -266,7 +287,10 @@ class NIOWebServerClient {
         else
         {
             String img = BIGIMAGE+path.substring(path.indexOf("?img=")+5)+NUMSEP+pathHash+".jpg";
-            body = createForwardLink(idx) + "<img src=\""+img+"\" style=\"width: 100%;\" />";
+            body = "<script>"+myscript+"</script>";
+            body = body + createNavigationLink(idx,false) + "--" +
+                    createNavigationLink(idx, true) +
+                    "<img src=\""+img+"\" style=\"width: 100%;\" />";
         }
         sendHttpBody(body, out);
     }
