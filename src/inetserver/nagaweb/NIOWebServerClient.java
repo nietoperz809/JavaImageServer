@@ -62,6 +62,28 @@ class NIOWebServerClient {
         }
     }
 
+    private String createImagePageLink (int idx, Path p)
+    {
+        String str = "<a href=\""
+            + "show.html?img="+idx
+            + "\" target=\"_blank\"><img src=\""
+            + pathHash+NUMSEP+idx+".jpg"
+            + "\" title=\"" + p.getFileName().toString() +"\""
+            + "></a>\r\n";
+        return str;
+    }
+
+    private String createForwardLink (int idx)
+    {
+        idx++;
+        if (idx == fileList.length)
+            idx = 0;
+        String str = "<a href=\""
+                + "show.html?img="+idx
+                + "\" target=\"_self\">NEXT</a>\r\n";
+        return str;
+    }
+
     /**
      * Build HTML page for directory
      *
@@ -101,13 +123,7 @@ class NIOWebServerClient {
                 dirs.add(p);
             } else if (isImage(name)) {
                 imageCtr++;
-                sb.append("<a href=\"");
-                sb.append("show.html?img=").append(idx);
-                //sb.append(BIGIMAGE).append(idx).append(".jpg");
-                sb.append("\" target=\"_blank\"><img src=\"");
-                sb.append(pathHash).append(NUMSEP).append(idx).append(".jpg");
-                sb.append("\" title=\"").append(p.getFileName().toString()).append("\"");
-                sb.append("></a>\r\n");
+                sb.append(createImagePageLink(idx, p));
             } else if (isVideo(name)) {
                 vidCtr++;
                 sb.append("<video width=\"320\" height=\"240\" controls src=\"");
@@ -243,13 +259,14 @@ class NIOWebServerClient {
     }
 
     private void sendImagePage(NIOSocket out, String path) throws Exception {
+        int idx = Integer.parseInt(path.substring(path.lastIndexOf('=')+1));
         String body;
         if (fileList == null)
             body = "<h1>Please reload gallery page</h1>";
         else
         {
             String img = BIGIMAGE+path.substring(path.indexOf("?img=")+5)+NUMSEP+pathHash+".jpg";
-            body ="<img src=\""+img+"\" style=\"width: 100%;\" />";
+            body = createForwardLink(idx) + "<img src=\""+img+"\" style=\"width: 100%;\" />";
         }
         sendHttpBody(body, out);
     }
