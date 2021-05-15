@@ -23,6 +23,16 @@ class NIOWebServerClient {
     private static final String NUMSEP = "@";
     private int pathHash;
     private File[] fileList;
+    private String myscript = "document.onkeydown = checkKey;\n" +
+            "function checkKey(e) {\n" +
+            "    e = e || window.event;\n" +
+            "    if (e.keyCode == '37') {\n" +
+            "       prv.click()\n" +
+            "    }\n" +
+            "    else if (e.keyCode == '39') {\n" +
+            "       nxt.click()\n" +
+            "    }\n" +
+            "}";
 
     boolean hasExtension(String in, String... ext) {
         in = in.toLowerCase();
@@ -62,46 +72,29 @@ class NIOWebServerClient {
         }
     }
 
-    private String createImagePageLink (int idx, Path p)
-    {
+    private String createImagePageLink(int idx, Path p) {
         String str = "<a href=\""
-            + "show.html?img="+idx
-            + "\" target=\"_blank\"><img src=\""
-            + pathHash+NUMSEP+idx+".jpg"
-            + "\" title=\"" + p.getFileName().toString() +"\""
-            + "></a>\r\n";
+                + "show.html?img=" + idx
+                + "\" target=\"_blank\"><img src=\""
+                + pathHash + NUMSEP + idx + ".jpg"
+                + "\" title=\"" + p.getFileName().toString() + "\""
+                + "></a>\r\n";
         return str;
     }
 
-    private String myscript = "document.onkeydown = checkKey;\n" +
-            "\n" +
-            "function checkKey(e) {\n" +
-            "\n" +
-            "    e = e || window.event;\n" +
-            "\n" +
-            "    if (e.keyCode == '37') {\n" +
-            "       prv.click()\n" +
-            "    }\n" +
-            "    else if (e.keyCode == '39') {\n" +
-            "       nxt.click()\n" +
-            "    }\n" +
-            "\n" +
-            "}";
-
-    private String createNavigationLink (int idx, boolean back)
-    {
-        idx = back ? idx-1 : idx+1;
+    private String createNavigationLink(int idx, boolean back) {
+        idx = back ? idx - 1 : idx + 1;
         if (idx == -1)
-            idx = fileList.length-1;
+            idx = fileList.length - 1;
         else if (idx == fileList.length)
             idx = 0;
         String str = "<a id=\""
                 + (back ? "prv" : "nxt")
                 + "\" href=\""
-                + "show.html?img="+idx
+                + "show.html?img=" + idx
                 + "\" target=\"_self\">"
                 + (back ? "PREV" : "NEXT")
-                +"</a>\r\n";
+                + "</a>\r\n";
         return str;
     }
 
@@ -111,7 +104,7 @@ class NIOWebServerClient {
      * @param path dir to be used
      * @return html page
      */
-    private String buildMainPage(String path) {
+    private String buildGalleryPage(String path) {
         pathHash = path.hashCode();
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
@@ -220,7 +213,7 @@ class NIOWebServerClient {
         String b = "HTTP/1.1 200 OK\n" +
                 "Content-Length: " + len + "\n" +
                 "Content-Type: image/jpeg\n" +
-                "Cache-Control: max-age=31536000, public"+
+                "Cache-Control: max-age=31536000, public" +
                 "Cache-Control: max-age=31536000, public" +
                 "\nConnection: close\n" +
                 "\n";
@@ -258,21 +251,21 @@ class NIOWebServerClient {
         out.write(b);
     }
 
-    private void sendHttpBody (String content, NIOSocket out) throws Exception
-    {
+    private void sendHttpBody(String content, NIOSocket out) throws Exception {
         String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
-                + "<body>"+content+"</body>"
+                + "<body>" + content + "</body>"
                 + "\r\n</html>";
         out.write(http.getBytes(UrlEncodeUTF8.utf8));
     }
 
     /**
-     * send image page
-     *
-     * @param out Print Writer
+     * Tx main Gallery
+     * @param out Socket
+     * @param path points to image stuff
+     * @throws Exception if smth. gone grong
      */
     private void sendGalleryPage(NIOSocket out, String path) throws Exception {
-        String mainPage = buildMainPage(path);
+        String mainPage = buildGalleryPage(path);
         if (mainPage == null) {
             mainPage = formatTextFile(path);
         }
@@ -280,17 +273,16 @@ class NIOWebServerClient {
     }
 
     private void sendImagePage(NIOSocket out, String path) throws Exception {
-        int idx = Integer.parseInt(path.substring(path.lastIndexOf('=')+1));
+        int idx = Integer.parseInt(path.substring(path.lastIndexOf('=') + 1));
         String body;
         if (fileList == null)
             body = "<h1>Please reload gallery page</h1>";
-        else
-        {
-            String img = BIGIMAGE+path.substring(path.indexOf("?img=")+5)+NUMSEP+pathHash+".jpg";
-            body = "<script>"+myscript+"</script>";
-            body = body + createNavigationLink(idx,false) + "--" +
+        else {
+            String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
+            body = "<script>" + myscript + "</script>";
+            body = body + createNavigationLink(idx, false) + "--" +
                     createNavigationLink(idx, true) +
-                    "<img src=\""+img+"\" style=\"width: 100%;\" />";
+                    "<img src=\"" + img + "\" style=\"width: 100%;\" />";
         }
         sendHttpBody(body, out);
     }
@@ -306,6 +298,13 @@ class NIOWebServerClient {
         return "<pre>\r\n" + cnt + "</pre>";
     }
 
+    /**
+     * webserver main function
+     * @param imagePath point to image stuff on disk
+     * @param cmd http command
+     * @param outputSocket socket for TX
+     * @throws Exception if smth gone wrong
+     */
     void perform(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
         String[] si = cmd.split(" ");
         String path = UrlEncodeUTF8.retransform(si[0].substring(1));
@@ -317,7 +316,7 @@ class NIOWebServerClient {
                 int idx = Integer.parseInt(path.substring(5));
                 sendJpegOriginal(outputSocket, fileList[idx]);
             } else {
-                path = path.substring(path.indexOf(NUMSEP)+1);
+                path = path.substring(path.indexOf(NUMSEP) + 1);
                 int idx = Integer.parseInt(path);
                 sendJpegSmall(outputSocket, fileList[idx]);
             }
