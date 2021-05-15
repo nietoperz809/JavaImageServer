@@ -17,10 +17,10 @@ public class OnOffButton extends JButton {
         offAction = off;
         setText("START");
         setBackground(Color.RED);
-        addActionListener(e -> fakeClick());
+        addActionListener(e -> simulateClick());
     }
 
-    public void fakeClick() {
+    public void simulateClick() {
         if (getBackground() == Color.RED) {
             setText("STOP");
             setBackground(Color.GREEN);

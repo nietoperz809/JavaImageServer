@@ -6,10 +6,8 @@ import misc.Tools;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicReference;
 
 class MainFrame
 {
@@ -25,10 +23,10 @@ class MainFrame
         ConfigFile cf = new ConfigFile(settingFile);
         cf.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
         cf.setAction("ftp-path", strings -> ftp.setPathTxt(strings[0]));
-        cf.setAction("ftp-start", strings -> ftp.button.fakeClick());
+        cf.setAction("ftp-start", strings -> ftp.button.simulateClick());
         cf.setAction("http-port", strings -> web.setPortTxt(strings[0]));
         cf.setAction("http-path", strings -> web.setPathTxt(strings[0]));
-        cf.setAction("http-start", strings -> web.button.fakeClick());
+        cf.setAction("http-start", strings -> web.button.simulateClick());
         cf.setAction("http-browser-start", strings -> web.browser_startflag = true);
         try
         {

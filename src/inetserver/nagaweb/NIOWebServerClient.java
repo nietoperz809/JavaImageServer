@@ -26,12 +26,8 @@ class NIOWebServerClient {
     private String myscript = "document.onkeydown = checkKey;\n" +
             "function checkKey(e) {\n" +
             "    e = e || window.event;\n" +
-            "    if (e.keyCode == '37') {\n" +
-            "       prv.click()\n" +
-            "    }\n" +
-            "    else if (e.keyCode == '39') {\n" +
-            "       nxt.click()\n" +
-            "    }\n" +
+            "    if (e.keyCode == '37') prv.click();\n" +
+            "    else if (e.keyCode == '39')  nxt.click();\n" +
             "}";
 
     boolean hasExtension(String in, String... ext) {
@@ -83,11 +79,13 @@ class NIOWebServerClient {
     }
 
     private String createNavigationLink(int idx, boolean back) {
-        idx = back ? idx - 1 : idx + 1;
-        if (idx == -1)
-            idx = fileList.length - 1;
-        else if (idx == fileList.length)
-            idx = 0;
+        do {
+            idx = back ? idx - 1 : idx + 1;
+            if (idx == -1)
+                idx = fileList.length - 1;
+            else if (idx == fileList.length)
+                idx = 0;
+        } while (!isImage(fileList[idx].getName()));
         String str = "<a id=\""
                 + (back ? "prv" : "nxt")
                 + "\" href=\""
