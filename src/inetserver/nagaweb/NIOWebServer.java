@@ -62,7 +62,7 @@ public class NIOWebServer {
                             try {
                                 client.perform(basePath, words[1], socket);
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                System.out.println("WS client fail: " + e);
                             }
                             socket.closeAfterWrite();
                         }

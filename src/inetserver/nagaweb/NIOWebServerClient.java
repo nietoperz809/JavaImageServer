@@ -18,7 +18,7 @@ import java.util.Comparator;
 /**
  * @author Administrator
  */
-class NIOWebServerClient {
+public class NIOWebServerClient {
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
     private int pathHash;
@@ -79,20 +79,21 @@ class NIOWebServerClient {
     }
 
     private String createNavigationLink(int idx, boolean back) {
+        int newIdx = idx;
         do {
-            idx = back ? idx - 1 : idx + 1;
-            if (idx == -1)
-                idx = fileList.length - 1;
-            else if (idx == fileList.length)
-                idx = 0;
-        } while (!isImage(fileList[idx].getName()));
+            newIdx = back ? newIdx - 1 : newIdx + 1;
+            if (newIdx == -1)
+                newIdx = fileList.length - 1;
+            else if (newIdx == fileList.length)
+                newIdx = 0;
+            if (newIdx == idx)  // detect endless loop
+                break;
+        } while (!isImage(fileList[newIdx].getName()));
         String str = "<a id=\""
                 + (back ? "prv" : "nxt")
-                + "\" href=\""
-                + "show.html?img=" + idx
-                + "\" target=\"_self\">"
-                + (back ? "PREV" : "NEXT")
-                + "</a>\r\n";
+                + "\" href=\"show.html?img=" + newIdx
+                + "\" target=\"_self\"><img src=\""
+                + (back ? "backarrow.ico" : "fwdarrow.ico") + "\"></a>\n";
         return str;
     }
 
@@ -224,14 +225,14 @@ class NIOWebServerClient {
      * @param out output stream
      */
     private void sendJpegSmall(NIOSocket out, File f) throws Exception {
-        byte[] b = Tools.reduceImg(f);
+        byte[] b = Tools.reduceImg (f, 100);
         imgHead(out, b.length);
         out.write(b);
     }
 
     private void sendJpegOriginal(NIOSocket out, File f) throws IOException {
         byte[] b = Files.readAllBytes(f.toPath());
-        imgHead(out, (int) f.length());
+        imgHead(out, b.length);
         out.write(b);
     }
 
@@ -278,8 +279,9 @@ class NIOWebServerClient {
         else {
             String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
             body = "<script>" + myscript + "</script>";
-            body = body + createNavigationLink(idx, false) + "--" +
+            body = body + "- Img: "+idx+" - "+ fileList[idx].getName() + " - " +
                     createNavigationLink(idx, true) +
+                    createNavigationLink(idx, false) +
                     "<img src=\"" + img + "\" style=\"width: 100%;\" />";
         }
         sendHttpBody(body, out);
@@ -328,6 +330,12 @@ class NIOWebServerClient {
             String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile(path) + "</html>";
             outputSocket.write(s.getBytes(StandardCharsets.UTF_8));
         } else if (path.equals("favicon.ico")) {
+            byte[] bt = Tools.gatResourceAsArray(path);
+            outputSocket.write(bt);
+        } else if (path.equals("backarrow.ico")) {
+            byte[] bt = Tools.gatResourceAsArray(path);
+            outputSocket.write(bt);
+        } else if (path.equals("fwdarrow.ico")) {
             byte[] bt = Tools.gatResourceAsArray(path);
             outputSocket.write(bt);
         } else if (path.startsWith("show.html")) {

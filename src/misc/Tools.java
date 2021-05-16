@@ -65,10 +65,10 @@ public class Tools
      * @return byte array of jpeg data
      * @throws Exception
      */
-    public static byte[] reduceImg (File path) throws Exception
+    public static byte[] reduceImg (File path, int xy) throws Exception
     {
         BufferedImage image = ImageIO.read(path);
-        BufferedImage image2 = resizeImage(image, 100, 100);
+        BufferedImage image2 = resizeImage(image, xy, xy);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(image2, "jpg", os);
         return os.toByteArray();
