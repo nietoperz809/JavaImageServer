@@ -21,6 +21,7 @@ import java.util.Comparator;
 public class NIOWebServerClient {
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
+    private final String m_basePath;
     private int pathHash;
     private File[] fileList;
     private String myscript = "document.onkeydown = checkKey;\n" +
@@ -29,6 +30,11 @@ public class NIOWebServerClient {
             "    if (e.keyCode == '37') prv.click();\n" +
             "    else if (e.keyCode == '39')  nxt.click();\n" +
             "}";
+
+    public NIOWebServerClient (String basePath)
+    {
+        m_basePath = basePath;
+    }
 
     boolean hasExtension(String in, String... ext) {
         in = in.toLowerCase();
@@ -118,11 +124,13 @@ public class NIOWebServerClient {
         ArrayList<Path> txtfiles = new ArrayList<>();
         ArrayList<Path> otherfiles = new ArrayList<>();
 
-        Path pp = Paths.get(path).getParent();
-        if (pp != null) {
-            String u8 = UrlEncodeUTF8.transform(pp.toString());
-            sb2.append("<a href=\"").append(u8).append("\">");
-            sb2.append("*BACK*").append("</a>").append("<hr>\r\n");
+        if (!path.equals(m_basePath)) {
+            Path pp = Paths.get(path).getParent();
+            if (pp != null) {
+                String u8 = UrlEncodeUTF8.transform(pp.toString());
+                sb2.append("<a href=\"").append(u8).append("\">");
+                sb2.append("*BACK*").append("</a>").append("<hr>\r\n");
+            }
         }
         int imageCtr = 0;
         int vidCtr = 0;
@@ -305,7 +313,7 @@ public class NIOWebServerClient {
      * @param outputSocket socket for TX
      * @throws Exception if smth gone wrong
      */
-    void perform(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
+    void perform (String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
         String[] si = cmd.split(" ");
         String path = UrlEncodeUTF8.retransform(si[0].substring(1));
 

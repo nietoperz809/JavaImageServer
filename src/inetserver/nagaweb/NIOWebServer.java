@@ -50,7 +50,7 @@ public class NIOWebServer {
         try {
             service = new NIOService();
             NIOServerSocket socket = service.openServerSocket(port);
-            NIOWebServerClient client = new NIOWebServerClient();
+            NIOWebServerClient client = new NIOWebServerClient(this.basePath);
             socket.listen(new ServerSocketObserverAdapter() {
                 public void newConnection(NIOSocket nioSocket) {
                     System.out.println("Client " + nioSocket.getIp() + " connected.");
