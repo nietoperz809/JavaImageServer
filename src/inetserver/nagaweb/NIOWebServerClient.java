@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import static misc.Tools.hasExtension;
+
 /**
  * @author Administrator
  */
@@ -23,8 +25,8 @@ public class NIOWebServerClient {
     private static final String NUMSEP = "@";
     private final String m_basePath;
     private int pathHash;
-    private File[] fileList;
-    private String myscript = "document.onkeydown = checkKey;\n" +
+    private ArrayList<File> fileList;
+    private final String myscript = "document.onkeydown = checkKey;\n" +
             "function checkKey(e) {\n" +
             "    e = e || window.event;\n" +
             "    if (e.keyCode == '37') prv.click();\n" +
@@ -34,16 +36,6 @@ public class NIOWebServerClient {
     public NIOWebServerClient (String basePath)
     {
         m_basePath = basePath;
-    }
-
-    boolean hasExtension(String in, String... ext) {
-        in = in.toLowerCase();
-        for (String s : ext) {
-            s = s.toLowerCase();
-            if (in.endsWith(s))
-                return true;
-        }
-        return false;
     }
 
     private boolean isVideo(String in) {
@@ -75,13 +67,12 @@ public class NIOWebServerClient {
     }
 
     private String createImagePageLink(int idx, Path p) {
-        String str = "<a href=\""
+        return "<a href=\""
                 + "show.html?img=" + idx
                 + "\" target=\"_blank\"><img src=\""
                 + pathHash + NUMSEP + idx + ".jpg"
                 + "\" title=\"" + p.getFileName().toString() + "\""
                 + "></a>\r\n";
-        return str;
     }
 
     private String createNavigationLink(int idx, boolean back) {
@@ -89,18 +80,17 @@ public class NIOWebServerClient {
         do {
             newIdx = back ? newIdx - 1 : newIdx + 1;
             if (newIdx == -1)
-                newIdx = fileList.length - 1;
-            else if (newIdx == fileList.length)
+                newIdx = fileList.size() - 1;
+            else if (newIdx == fileList.size())
                 newIdx = 0;
             if (newIdx == idx)  // detect endless loop
                 break;
-        } while (!isImage(fileList[newIdx].getName()));
-        String str = "<a id=\""
+        } while (!isImage(fileList.get(newIdx).getName()));
+        return "<a id=\""
                 + (back ? "prv" : "nxt")
                 + "\" href=\"show.html?img=" + newIdx
                 + "\" target=\"_self\"><img src=\""
                 + (back ? "backarrow.ico" : "fwdarrow.ico") + "\"></a>\n";
-        return str;
     }
 
     /**
@@ -114,11 +104,13 @@ public class NIOWebServerClient {
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
 
-        fileList = new File(path).listFiles();
-        if (fileList == null) {
+        File[] pa = new File(path).listFiles();
+        if (pa == null) {
             return null;
         }
-        Arrays.sort(fileList, Comparator.comparingLong(File::lastModified)); // Sort by date
+        Arrays.sort(pa, Comparator.comparingLong(File::lastModified)); // Sort by date
+
+        fileList = new ArrayList<>(Arrays.asList(pa));
 
         ArrayList<Path> dirs = new ArrayList<>();
         ArrayList<Path> txtfiles = new ArrayList<>();
@@ -135,8 +127,8 @@ public class NIOWebServerClient {
         int imageCtr = 0;
         int vidCtr = 0;
 
-        for (int idx = 0; idx < fileList.length; idx++) {
-            File fil = fileList[idx];
+        for (int idx = 0; idx < fileList.size(); idx++) {
+            File fil = fileList.get(idx);
             String name = fil.getName();
             Path p = Paths.get(path, name);
             String u8 = UrlEncodeUTF8.transform(p.toString());
@@ -287,7 +279,7 @@ public class NIOWebServerClient {
         else {
             String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
             body = "<script>" + myscript + "</script>";
-            body = body + "- Img: "+idx+" - "+ fileList[idx].getName() + " - " +
+            body = body + "- Img: "+idx+" - "+ fileList.get(idx).getName() + " - " +
                     createNavigationLink(idx, true) +
                     createNavigationLink(idx, false) +
                     "<img src=\"" + img + "\" style=\"width: 100%;\" />";
@@ -322,11 +314,11 @@ public class NIOWebServerClient {
             if (path.startsWith(BIGIMAGE)) {
                 path = path.substring(0, path.indexOf(NUMSEP));
                 int idx = Integer.parseInt(path.substring(5));
-                sendJpegOriginal(outputSocket, fileList[idx]);
+                sendJpegOriginal(outputSocket, fileList.get(idx));
             } else {
                 path = path.substring(path.indexOf(NUMSEP) + 1);
                 int idx = Integer.parseInt(path);
-                sendJpegSmall(outputSocket, fileList[idx]);
+                sendJpegSmall(outputSocket, fileList.get(idx));
             }
         } else if (isZip(path)) {
             sendZip(outputSocket, path);

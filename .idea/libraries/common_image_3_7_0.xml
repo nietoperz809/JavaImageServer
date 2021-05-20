@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="common-image-3.7.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/common-image-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/common-io-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/common-lang-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio-core-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio-jpeg-3.7.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/imageio-metadata-3.7.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -6,25 +6,14 @@ package misc;
 //import transform.Transformation;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.io.*;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import static java.awt.Toolkit.getDefaultToolkit;
-import static java.awt.datatransfer.DataFlavor.stringFlavor;
 
 /**
  * @author Administrator
@@ -67,12 +56,40 @@ public class Tools
      */
     public static byte[] reduceImg (File path, int xy) throws Exception
     {
-        BufferedImage image = ImageIO.read(path);
+        BufferedImage image = loadImage(path);
         BufferedImage image2 = resizeImage(image, xy, xy);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(image2, "jpg", os);
         return os.toByteArray();
     }
+
+    public static BufferedImage loadImage (File file) throws Exception
+    {
+        if (hasExtension(file.getName(), ".gif"))
+        {
+            FileInputStream fin = new FileInputStream (file);
+            AnimatedGIFReader reader = new AnimatedGIFReader();
+            BufferedImage img = reader.read(fin);
+            fin.close();
+            return img;
+        }
+        else
+        {
+            return ImageIO.read(file);
+        }
+    }
+
+    public static boolean hasExtension(String in, String... ext) {
+        in = in.toLowerCase();
+        for (String s : ext) {
+            s = s.toLowerCase();
+            if (in.endsWith(s))
+                return true;
+        }
+        return false;
+    }
+
+
 
     /**
      * Creates Image copy of new size
