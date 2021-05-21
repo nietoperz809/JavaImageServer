@@ -5,14 +5,12 @@ package misc;
 
 //import transform.Transformation;
 
+import misc.gifdecoder.AnimatedGIFReader;
+
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.io.*;
-import java.util.Iterator;
 import java.util.Objects;
 
 /**

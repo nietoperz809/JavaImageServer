@@ -16,7 +16,7 @@
  * WY    20Nov2015  Initial creation
  */
 
-package misc;
+package misc.gifdecoder;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -63,7 +63,7 @@ public class AnimatedGIFReader {
 	private int width;
 	private int height;
 	private int bitsPerPixel;
-	private int rgbColorPalette[];
+	private int[] rgbColorPalette;
 
 	// To keep track of all the frames
 	private List<GIFFrame> gifFrames;
@@ -84,12 +84,12 @@ public class AnimatedGIFReader {
 	}
    
 	private byte[] decodeLZWInterLaced(InputStream is) throws Exception	{
-		int index = 0;
+		int index;
 		int index2 = 0;
-		int passParam[] = {0,8,4,8,2,4,1,2};
-		int passStart[] = {0,width*passParam[2],width*passParam[4],width*passParam[6]};
-		int passInc[]   = {width*passParam[1],width*passParam[3],width*passParam[5],width*passParam[7]};
-		int passHeight[]= {((height-1)>>3)+1,((height+3)>>3),((height+1)>>2),((height)>>1)}; 
+		int[] passParam = {0,8,4,8,2,4,1,2};
+		int[] passStart = {0,width*passParam[2],width*passParam[4],width*passParam[6]};
+		int[] passInc = {width*passParam[1],width*passParam[3],width*passParam[5],width*passParam[7]};
+		int[] passHeight = {((height-1)>>3)+1,((height+3)>>3),((height+1)>>2),((height)>>1)};
 
 		/////////////////////////////////////
 		int min_code_size = is.read();// The length of the root
@@ -185,8 +185,8 @@ public class AnimatedGIFReader {
 		// This single call will trigger the reading of the global scope data
 		BufferedImage bi = getFrameAsBufferedImage(is);
 		if(bi == null) return null;
-		int maxWidth = (width < logicalScreenWidth)? width:logicalScreenWidth;
-		int maxHeight = (height < logicalScreenHeight)? height:logicalScreenHeight;
+		int maxWidth = Math.min(width, logicalScreenWidth);
+		int maxHeight = Math.min(height, logicalScreenHeight);
 		if(baseImage == null)
 			baseImage = new BufferedImage(logicalScreenWidth, logicalScreenHeight, BufferedImage.TYPE_INT_ARGB);
 		Rectangle area = new Rectangle(image_x, image_y, maxWidth, maxHeight);
@@ -289,7 +289,7 @@ public class AnimatedGIFReader {
 		
 		resetFrameParameters();
 	   
-		int image_separator = 0;
+		int image_separator;
 	
 		do {		   
 			image_separator = is.read();
@@ -356,7 +356,7 @@ public class AnimatedGIFReader {
 	private void readGlobalPalette(InputStream is,int num_of_color) throws Exception {
 		int index1 = 0;
 		int bytes2read = num_of_color*3;
-		byte brgb[] = new byte[bytes2read];  
+		byte[] brgb = new byte[bytes2read];
 		IOUtils.readFully(is,brgb,0,bytes2read);
 	
 		globalColorPalette = new int[num_of_color];
@@ -399,9 +399,9 @@ public class AnimatedGIFReader {
 	}
     
 	public BufferedImage read(InputStream is) throws Exception {
-		frames = new ArrayList<BufferedImage>();
-		gifFrames = new ArrayList<GIFFrame>();
-		BufferedImage bi = null;
+		frames = new ArrayList<>();
+		gifFrames = new ArrayList<>();
+		BufferedImage bi;
 		
 		while((bi = getFrameAsBufferedImageEx(is)) != null) {
 			gifFrames.add(new GIFFrame(bi, image_x, image_y, delay, disposalMethod, userInputFlag, transparencyFlag, transparent_color));
@@ -413,7 +413,7 @@ public class AnimatedGIFReader {
     
 	private byte readImageDescriptor(InputStream is) throws Exception {	 	
 		int nindex = 0;
-		byte ides[] = new byte[9];
+		byte[] ides = new byte[9];
 	
 		IOUtils.readFully(is,ides,0,9);
 	
@@ -428,7 +428,7 @@ public class AnimatedGIFReader {
 	private void readLocalPalette(InputStream is,int num_of_color) throws Exception	{
 		int index1 = 0;
 		int bytes2read = num_of_color*3;
-		byte brgb[] = new byte[bytes2read];  
+		byte[] brgb = new byte[bytes2read];
 		IOUtils.readFully(is,brgb,0,bytes2read);
 	
 		rgbColorPalette = new int[num_of_color];
@@ -450,351 +450,5 @@ public class AnimatedGIFReader {
 		height = 0;
 		// End of fields reset
 	}
-	
-	private static class GifHeader {
-		private byte  signature[] = new byte[3];
-		private byte  version[] = new byte[3];
 
-		private int screen_width;
-		private int screen_height;
-		private byte  flags;
-		private byte  bgcolor;
-		@SuppressWarnings("unused")
-		private byte  aspectRatio;
-  
-		void readHeader(InputStream is) throws Exception {
-			int nindex = 0;
-			byte bhdr[] = new byte[13];
-
-			IOUtils.readFully(is,bhdr,0,13);
-	
-			for(int i = 0; i < 3; i++)
-				signature[i] = bhdr[nindex++];
-	      
-			for(int i = 0; i < 3; i++)
-				version[i] = bhdr[nindex++];
-	      
-			screen_width = ((bhdr[nindex++]&0xff)|((bhdr[nindex++]&0xff)<<8));
-			screen_height = ((bhdr[nindex++]&0xff)|((bhdr[nindex++]&0xff)<<8));
-			flags = bhdr[nindex++];
-			bgcolor = bhdr[nindex++];
-			aspectRatio = bhdr[nindex++];
-			// The end
-		}
-	}
-  
-	public static class GIFFrame {
-		// Frame parameters
-		private BufferedImage frame;
-		private int leftPosition;
-		private int topPosition;
-		private int frameWidth;
-		private int frameHeight;
-		private int delay;
-		private int disposalMethod = DISPOSAL_UNSPECIFIED;
-		private int userInputFlag = USER_INPUT_NONE;
-		private int transparencyFlag = TRANSPARENCY_INDEX_NONE;
-		
-		// The transparent color value in RRGGBB format.
-		// The highest order byte has no effect.
-		private int transparentColor = TRANSPARENCY_COLOR_NONE; // Default no transparent color
-		
-		public static final int DISPOSAL_UNSPECIFIED = 0;
-		public static final int DISPOSAL_LEAVE_AS_IS = 1;
-		public static final int DISPOSAL_RESTORE_TO_BACKGROUND = 2;
-		public static final int DISPOSAL_RESTORE_TO_PREVIOUS = 3;
-		// Values between 4-7 inclusive
-		public static final int DISPOSAL_TO_BE_DEFINED = 7;
-		
-		public static final int USER_INPUT_NONE = 0;
-		public static final int USER_INPUT_EXPECTED = 1;
-		
-		public static final int TRANSPARENCY_INDEX_NONE = 0;
-		public static final int TRANSPARENCY_INDEX_SET = 1;
-		
-		public static final int TRANSPARENCY_COLOR_NONE = -1;
-		
-		public GIFFrame(BufferedImage frame) {
-			this(frame, 0, 0, 0, GIFFrame.DISPOSAL_UNSPECIFIED);
-		}
-		
-		public GIFFrame(BufferedImage frame, int delay) {
-			this(frame, 0, 0, delay, GIFFrame.DISPOSAL_UNSPECIFIED);
-		}
-		
-		public GIFFrame(BufferedImage frame, int delay, int disposalMethod) {
-			this(frame, 0, 0, delay, disposalMethod);
-		}
-		
-		public GIFFrame(BufferedImage frame, int leftPosition, int topPosition, int delay, int disposalMethod) {
-			this(frame, leftPosition, topPosition, delay, disposalMethod, USER_INPUT_NONE, TRANSPARENCY_INDEX_NONE, TRANSPARENCY_COLOR_NONE);
-		}
-		
-		public GIFFrame(BufferedImage frame, int leftPosition, int topPosition, int delay, int disposalMethod, int userInputFlag, int transparencyFlag, int transparentColor) {
-			if(frame == null) throw new IllegalArgumentException("Null input image");
-			if(disposalMethod < DISPOSAL_UNSPECIFIED || disposalMethod > DISPOSAL_TO_BE_DEFINED)
-				throw new IllegalArgumentException("Invalid disposal method: " + disposalMethod);
-			if(userInputFlag < USER_INPUT_NONE || userInputFlag > USER_INPUT_EXPECTED)
-				throw new IllegalArgumentException("Invalid user input flag: " + userInputFlag);
-			if(transparencyFlag < TRANSPARENCY_INDEX_NONE || transparencyFlag > TRANSPARENCY_INDEX_SET)
-				throw new IllegalArgumentException("Invalid transparency flag: " + transparencyFlag);
-			if(leftPosition < 0 || topPosition < 0)
-				throw new IllegalArgumentException("Negative coordinates for frame top-left position");
-			if(delay < 0) delay = 0;
-			this.frame = frame;
-			this.leftPosition = leftPosition;
-			this.topPosition = topPosition;	
-			this.delay = delay;
-			this.disposalMethod = disposalMethod;
-			this.userInputFlag = userInputFlag;
-			this.transparencyFlag = transparencyFlag;
-			this.frameWidth = frame.getWidth();
-			this.frameHeight = frame.getHeight();
-			this.transparentColor = transparentColor;
-		}
-		
-		public int getDelay() {
-			return delay;
-		}
-		
-		public int getDisposalMethod() {
-			return disposalMethod;
-		}
-		
-		public BufferedImage getFrame() {
-			return frame;
-		}
-		
-		public int getFrameHeight() {
-			return frameHeight;
-		}
-		
-		public int getFrameWidth() {
-			return frameWidth;
-		}
-		
-		public int getLeftPosition() {
-			return leftPosition;
-		}
-		
-		public int getTopPosition() {
-			return topPosition;
-		}
-		
-		public int getTransparentColor() {
-			return transparentColor;
-		}
-		
-		public int getTransparencyFlag() {
-			return transparencyFlag;
-		}
-		
-		public int getUserInputFlag() {
-			return userInputFlag;
-		}
-	}
-	
-	private static class IOUtils {
-			 
-		public static void readFully(InputStream is, byte b[]) throws IOException {
-			readFully(is, b, 0, b.length);
-		}
-		 
-		public static void readFully(InputStream is, byte[] b, int off, int len) throws IOException {
-			if (len < 0)
-				throw new IndexOutOfBoundsException();
-			int n = 0;         
-			while (n < len) {
-				int count = is.read(b, off + n, len - n);
-				if (count < 0)
-					return; //throw new EOFException();
-				n += count;
-			}
-		}
-		 
-		public static int readUnsignedShort(InputStream is) throws IOException {
-			byte[] buf = new byte[2];
-			readFully(is, buf);
-			
-			return ((buf[1]&0xff)<<8)|(buf[0]&0xff);
-		}
-		
-		public static void skipFully(InputStream is, int n) throws IOException {
-			readFully(is, new byte[n]);
-		}	
-		 
-		private IOUtils() {}
-	}
-	 
-	private static class LZWTreeDecoder {
-	
-		// Variables for code reading
-		private int bits_remain = 0;
-		private int bytes_available = 0;
-		private int temp_byte = 0;        
-		private int bufIndex = 0;
-		private byte bytes_buf[] = new byte[256];
-	    
-		private int oldcode = 0 ;
-		private int code = 0;
-		private int[] prefix = new int[4097];
-		private int[] suffix = new int[4097];
-
-		private int min_code_size;
-		private int clearCode;
-		// End of image for GIF or end of information for TIFF
-		private int endOfImage;
-
-		// Variables to clear table
-		private int codeLen;
-		private int codeIndex;
-		private int limit;
-
-		private int first_code_index;
-		private int first_char;
-
-		private InputStream is;
-	
-		private static final int MASK[] = {0x00,0x001,0x003,0x007,0x00f,0x01f,0x03f,0x07f,0x0ff,0x1ff,0x3ff,0x7ff,0xfff};
-		
-	    private int leftOver = 0;// Used to keep track of the not fully expanded code string.
-		private int buf[] = new int[4097];
-		
-		private static final int MAX_CODE = (1<<12);
-		
-		/**
-		 * There are some subtle differences between the LZW algorithm used by TIFF and GIF images.
-		 *
-		 * Variable Length Codes:
-		 * Both TIFF and GIF use a variation of the LZW algorithm that uses variable length codes.
-		 * In both cases, the maximum code size is 12 bits. The initial code size, however, is different
-		 * between the two formats. TIFF's initial code size is always 9 bits. GIF's initial code size 
-		 * is specified on a per-file basis at the beginning of the image descriptor block, 
-		 * with a minimum of 3 bits.
-		 * <p>
-		 * TIFF and GIF each switch to the next code size using slightly different algorithms. 
-		 * GIF increments the code size as soon as the LZW string table's length is equal to 2**code-size,
-		 * while TIFF increments the code size when the table's length is equal to 2**code-size - 1.
-		 * <p>
-		 * Packing Bits into Bytes
-		 * TIFF and GIF LZW algorithms differ in how they pack the code bits into the byte stream.
-		 * The least significant bit in a TIFF code is stored in the most significant bit of the bytestream,
-		 * while the least significant bit in a GIF code is stored in the least significant bit of the bytestream.
-		 * <p>
-		 * Special Codes
-		 * TIFF and GIF both add the concept of a 'Clear Code' and a 'End of Information Code' to the LZW algorithm. 
-		 * In both cases, the 'Clear Code' is equal to 2**(code-size - 1) and the 'End of Information Code' is equal
-		 * to the Clear Code + 1. These 2 codes are reserved in the string table. So in both cases, the LZW string
-		 * table is initialized to have a length equal to the End of Information Code + 1.	
-		 */
-		public LZWTreeDecoder(InputStream is, int min_code_size) {
-			if(min_code_size < 2 || min_code_size > 12)
-				   throw new IllegalArgumentException("invalid min_code_size: " + min_code_size);
-			this.is = is;
-		   	this.min_code_size = min_code_size;
-		   	clearCode = (1<<min_code_size);
-		   	endOfImage = clearCode+1;
-		   	first_code_index = endOfImage+1;
-		   	// Reset string table
-		   	clearStringTable();
-		}
-		
-		private void clearStringTable() {
-		   	// Reset string table
-		   	codeLen = min_code_size+1;
-		   	limit = (1<<codeLen)-1;
-		   	codeIndex = endOfImage;	
-		}
-		
-		public int decode(byte[] pix, int offset, int len) throws Exception {
-			int counter = 0;// Keep track of how many bytes have been decoded.
-			///////////////
-			int tempcode = 0;
-			int i = 0;
-	        //////////////////////////////////////////////////////////
-			if(leftOver>0){//flush out left over first.
-				for( int j = leftOver-1; j >= 0; j--, leftOver-- ) {
-					   if ((offset >= pix.length)||(counter>=len))// Will this ever happen?!
-						   return counter;
-					   pix[offset++] = (byte)buf[j];
-					   counter++;
-		       }
-			}
-	        //////////////////////////////////////////////////////////
-	        label:
-			do {
-				i = 0;
-				code = readLZWCode();
-				tempcode = code;
-
-				if(code == clearCode) {
-					clearStringTable();
-				} else if(code == endOfImage) {  
-				    break;
-				} else {
-				   if(code >= codeIndex) {
-	                    tempcode = oldcode;
-	  				    buf[i++] = first_char;
-				   }
-			       while (tempcode >= first_code_index) {
-				       buf[i++] = suffix[tempcode];
-			           tempcode = prefix[tempcode];
-			       }
-			       buf[i++] = tempcode;
-
-				   suffix[codeIndex] = first_char = tempcode;
-			       prefix[codeIndex] = oldcode;
-			       // Check boundary to deal with deferred clear code in LZW compression
-			       if(codeIndex < MAX_CODE) codeIndex++; 
-			       
-			       oldcode = code;
-		           
-				   if((codeIndex > limit) && (codeLen<12)) {
-			           codeLen++;
-				       limit = (1<<codeLen)-1;			  
-				   }
-				   // Output strings for the current code
-			       leftOver = i;
-				   for( int j = i-1; j >= 0; j--, leftOver--, counter++ ) {
-					   if ((offset >= pix.length)||(counter>=len))
-				             break label;
-					   pix[offset++] = (byte)buf[j];
-			       }
-			    }
-	        } while(true);
-
-			return counter;
-	 	}
-	   
-		private int readLZWCode() throws Exception {
-	        int temp = 0;		
-			temp = (temp_byte >> (8-bits_remain));
-		
-			while (codeLen > bits_remain) {
-				if(bytes_available == 0) {
-					// find another data block available
-					// Start a new image data sub-block if possible!
-	            	// The block size bytes_available is no bigger than 0xff
-					bytes_available = is.read();
-					
-					if(bytes_available > 0) {
-						IOUtils.readFully(is,bytes_buf,0,bytes_available);
-						bufIndex = 0;
-					} else if(bytes_available == 0)
-						return endOfImage;
-					else {
-						return endOfImage;
-					}
-				}				
-				temp_byte = bytes_buf[bufIndex++]&0xff;
-				bytes_available--;
-				temp |= (temp_byte<<bits_remain);			
-				bits_remain += 8;
-			}
-			
-			bits_remain -= codeLen;
-	        
-			return (temp&MASK[codeLen]);
-		}		
-	}
 }
