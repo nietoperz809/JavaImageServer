@@ -7,6 +7,6 @@ ftp-path :: C:\Users\Administrator\Desktop\fisk\main
 http-port :: 80
 * http-path :: C:\Users\Administrator\Desktop\annabel
 * http-path :: C:\Users\Administrator\Desktop\fisk
-http-path :: C:\Users\Administrator\Desktop\imagea
+http-path :: C:\Users\Administrator\Desktop\feet
 http-start
 http-browser-start

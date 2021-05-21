@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014-2016 by Wen Yu.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -18,21 +18,10 @@
 
 package misc.gifdecoder;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
-import java.io.*;
+import java.awt.*;
+import java.awt.image.*;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /** 
@@ -48,7 +37,6 @@ public class AnimatedGIFReader {
 	private GifHeader gifHeader;
 	private int logicalScreenWidth;
 	private int logicalScreenHeight;
-	private Color backgroundColor = new Color(255, 255, 255);
 	private int[] globalColorPalette;
 	// Graphic control extension specific fields
 	protected int disposalMethod = GIFFrame.DISPOSAL_UNSPECIFIED;
@@ -65,10 +53,6 @@ public class AnimatedGIFReader {
 	private int bitsPerPixel;
 	private int[] rgbColorPalette;
 
-	// To keep track of all the frames
-	private List<GIFFrame> gifFrames;
-	private List<BufferedImage> frames;
-	
 	// BufferedImage with the width and height of the logical screen to draw frames upon
 	private BufferedImage baseImage;
 	
@@ -121,10 +105,10 @@ public class AnimatedGIFReader {
 		return temp_;
 	}
    
-	public Color getBackgroundColor() {
-		return backgroundColor;
-	}
-   
+//	public Color getBackgroundColor() {
+//		return backgroundColor;
+//	}
+
 	/**
 	 * Gets the current frame as a BufferedImage. The frames created this may assume
 	 * different sizes and are intended to be located at different positions in the
@@ -216,70 +200,70 @@ public class AnimatedGIFReader {
 		} else { // To be defined - should never come here
 			baseImage = new BufferedImage(logicalScreenWidth, logicalScreenHeight, BufferedImage.TYPE_INT_ARGB);
 			g = baseImage.createGraphics();
-		}	
-		
+		}
+
 		return clone;
 	}
-	
-	/**
+
+	/*
 	 * Get the total number of frames read by this GIFReader.
-	 *  
+	 *
 	 * @return number of frames read by this GIFReader or 0 if not read yet
 	 */
-	public int getFrameCount() {
-		if(frames != null) // We have already read the image
-			return frames.size();
-		return 0; // We haven't read the image yet
-	}
-	
-	public BufferedImage getFrame(int i) {
-		if(frames == null) return null;
-		if(i < 0 || i >= frames.size())
-			throw new IndexOutOfBoundsException("Index: " + i);
-		return frames.get(i);
-	}
+//	public int getFrameCount() {
+//		if(frames != null) // We have already read the image
+//			return frames.size();
+//		return 0; // We haven't read the image yet
+//	}
+
+//	public BufferedImage getFrame(int i) {
+//		if(frames == null) return null;
+//		if(i < 0 || i >= frames.size())
+//			throw new IndexOutOfBoundsException("Index: " + i);
+//		return frames.get(i);
+//	}
 	
 	/**
 	 * Get the total frames read by this GIFRreader.
 	 * 
 	 * @return a list of the total frames read by this GIFRreader or empty list if not read yet
 	 */
-	public List<BufferedImage> getFrames() {
-		if(frames != null)
-			return Collections.unmodifiableList(frames);
-		return Collections.emptyList();
-	}
+//	public List<BufferedImage> getFrames() {
+//		if(frames != null)
+//			return Collections.unmodifiableList(frames);
+//		return Collections.emptyList();
+//	}
 	
-	public GIFFrame getGIFFrame(int i) {
-		if(gifFrames == null) return null;
-		if(i < 0 || i >= gifFrames.size())
-			throw new IndexOutOfBoundsException("Index: " + i);
-		return gifFrames.get(i);
-	}
+//	public GIFFrame getGIFFrame(int i) {
+//		if(gifFrames == null) return null;
+//		if(i < 0 || i >= gifFrames.size())
+//			throw new IndexOutOfBoundsException("Index: " + i);
+//		return gifFrames.get(i);
+//	}
 	
-	public List<GIFFrame> getGIFFrames() {
-		if(gifFrames != null)
-			return Collections.unmodifiableList(gifFrames);
-		return Collections.emptyList();			
-	}
+//	public List<GIFFrame> getGIFFrames() {
+//		if(gifFrames != null)
+//			return Collections.unmodifiableList(gifFrames);
+//		return Collections.emptyList();
+//	}
 
-	public int getLogicalScreenHeight() {
-		return logicalScreenHeight;
-	}
+//	public int getLogicalScreenHeight() {
+//		return logicalScreenHeight;
+//	}
     
-	public int getLogicalScreenWidth() {
-		return logicalScreenWidth;
-	}
+//	public int getLogicalScreenWidth() {
+//		return logicalScreenWidth;
+//	}
 	
-	public int getTransparentColor() {
-		if(transparent_color >= 0)
-			return rgbColorPalette[transparent_color]&0xffffff; // We only need RGB, no alpha
-		return GIFFrame.TRANSPARENCY_COLOR_NONE;
-	}
+//	public int getTransparentColor() {
+//		if(transparent_color >= 0)
+//			return rgbColorPalette[transparent_color]&0xffffff; // We only need RGB, no alpha
+//		return GIFFrame.TRANSPARENCY_COLOR_NONE;
+//	}
 	
-	public boolean isTransparent() {
-		return transparencyFlag == GIFFrame.TRANSPARENCY_INDEX_SET;
-	}
+//	public boolean isTransparent() {
+//		return transparencyFlag == GIFFrame.TRANSPARENCY_INDEX_SET;
+//	}
    
 	private byte[] readFrame(InputStream is) throws Exception {
 		// One time read of global scope data
@@ -390,17 +374,19 @@ public class AnimatedGIFReader {
 			int bitsPerColor = ((flags&0x70)>>4)+1;
 	
 			readGlobalPalette(is, colorsUsed);
-			int bgcolor = gifHeader.bgcolor&0xff;
-			if(bgcolor < colorsUsed)
-			   backgroundColor = new Color(globalColorPalette[bgcolor]);
+//			int bgcolor = gifHeader.bgcolor&0xff;
+//			Color backgroundColor = new Color(255, 255, 255);
+//			if(bgcolor < colorsUsed)
+//			   backgroundColor = new Color(globalColorPalette[bgcolor]);
 	   	}
 		   
 	   	return true;
 	}
     
 	public BufferedImage read(InputStream is) throws Exception {
-		frames = new ArrayList<>();
-		gifFrames = new ArrayList<>();
+		List<BufferedImage> frames = new ArrayList<>();
+		// To keep track of all the frames
+		List<GIFFrame> gifFrames = new ArrayList<>();
 		BufferedImage bi;
 		
 		while((bi = getFrameAsBufferedImageEx(is)) != null) {
