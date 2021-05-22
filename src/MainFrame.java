@@ -21,7 +21,7 @@ class MainFrame
     private static WebServerGUI web = new WebServerGUI();
     private static ConfigGUI config = new ConfigGUI();
 
-    private static void loadConfiguration()
+    private static boolean loadConfiguration()
     {
         ConfigFile cf = new ConfigFile(settingFile);
         cf.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
@@ -34,10 +34,12 @@ class MainFrame
         try
         {
             cf.execute();
+            return true;
         }
         catch (IOException e)
         {
-            System.out.println("CFG file read error");;
+            System.out.println("CFG file read error");
+            return false;
         }
     }
 

@@ -9,7 +9,7 @@ import misc.OnOffButton;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -115,8 +115,16 @@ public class WebServerGUI extends JPanel {
 
     public void start() {
         if (sockserver == null) {
-            int port = Integer.parseInt(portTxt.getText());
-            sockserver = new NIOWebServer(port, pathTxt.getText());
+            try {
+                int port = Integer.parseInt(portTxt.getText());
+                String path = pathTxt.getText();
+                if (!new File(path).isDirectory())
+                    throw new Exception("no base dir");
+                sockserver = new NIOWebServer(port, path);
+            } catch (Exception e) {
+                button.doClick(); // cancel click
+                return;
+            }
             new Thread(() -> {
                 String url = "http://localhost:"+portTxt.getText();
                 if (browser_startflag) {
