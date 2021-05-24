@@ -1,6 +1,7 @@
 package inetserver.nagaweb;
 
 
+import misc.ThumbManager;
 import misc.Tools;
 import naga.NIOSocket;
 import transform.UrlEncodeUTF8;
@@ -32,6 +33,7 @@ public class NIOWebServerClient {
             "    if (e.keyCode == '37') prv.click();\n" +
             "    else if (e.keyCode == '39')  nxt.click();\n" +
             "}";
+    private ThumbManager thumbs;
 
     public NIOWebServerClient (String basePath)
     {
@@ -100,6 +102,7 @@ public class NIOWebServerClient {
      * @return html page
      */
     private String buildGalleryPage(String path) {
+        thumbs = new ThumbManager(path);
         pathHash = path.hashCode();
         StringBuilder sb = new StringBuilder();
         StringBuilder sb2 = new StringBuilder();
@@ -225,9 +228,9 @@ public class NIOWebServerClient {
      * @param out output stream
      */
     private void sendJpegSmall(NIOSocket out, File f) throws Exception {
-        byte[] b = Tools.reduceImg (f, 100);
-        imgHead(out, b.length);
-        out.write(b);
+        byte[] bytes = thumbs.getThumbnail(f);
+        imgHead(out, bytes.length);
+        out.write(bytes);
     }
 
     private void sendJpegOriginal(NIOSocket out, File f) throws IOException {
