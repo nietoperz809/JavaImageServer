@@ -15,6 +15,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
 import static misc.Tools.hasExtension;
@@ -24,6 +26,7 @@ import static misc.Tools.humanReadableByteCount;
  * @author Administrator
  */
 public class NIOWebServerClient {
+    private static final long MAXSIZE = 20_000_000;
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
     private final String m_basePath;
@@ -128,6 +131,12 @@ public class NIOWebServerClient {
         Arrays.sort(pa, comparingLong(File::lastModified)); // Sort by date
 
         fileList = new ArrayList<>(Arrays.asList(pa));
+        int totalsize = fileList.size();
+        fileList = (ArrayList<File>) fileList.stream()
+                .filter (p -> p.length() < MAXSIZE)
+                .filter (p -> !p.getName().endsWith(ThumbManager.DNAME))
+                .collect(Collectors.toList());
+        int filtsize = fileList.size();
 
         ArrayList<Path> dirs = new ArrayList<>();
         ArrayList<Path> txtfiles = new ArrayList<>();
@@ -138,7 +147,8 @@ public class NIOWebServerClient {
             if (pp != null) {
                 String u8 = UrlEncodeUTF8.transform(pp.toString());
                 sb2.append("Here: ").append (path.toString()).append("  --  \r\n");
-                sb2.append("<a href=\"").append(u8).append("\">");
+                sb2.append("Objects: ").append(totalsize).append(" --- Omitted: ").append(totalsize-filtsize);
+                sb2.append(" --- <a href=\"").append(u8).append("\">");
                 sb2.append("*BACK*").append("</a>").append("<hr>\r\n");
             }
         }
@@ -148,8 +158,6 @@ public class NIOWebServerClient {
         for (int idx = 0; idx < fileList.size(); idx++) {
             File fil = fileList.get(idx);
             String name = fil.getName();
-            if (name.endsWith(ThumbManager.DNAME))
-                continue; // Skip thumbs dir
             Path p = Paths.get(path, name);
             String u8 = UrlEncodeUTF8.transform(p.toString());
             if (fil.isDirectory()) {
