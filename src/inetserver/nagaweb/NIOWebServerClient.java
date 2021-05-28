@@ -14,9 +14,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Collections;
 
+import static java.util.Comparator.*;
 import static misc.Tools.hasExtension;
+import static misc.Tools.humanReadableByteCount;
 
 /**
  * @author Administrator
@@ -33,6 +35,13 @@ public class NIOWebServerClient {
             "    if (e.keyCode == '37') prv.click();\n" +
             "    else if (e.keyCode == '39')  nxt.click();\n" +
             "}";
+    private final String mystyle = "a:hover {\n" +
+            "  color: white;\n" +
+            "  background-color: black;\n" +
+            "}\n" +
+            "a:visited {\n" +
+            "  color: green;\n" +
+            "}\n";
     private ThumbManager thumbs;
 
     public NIOWebServerClient (String basePath)
@@ -60,12 +69,17 @@ public class NIOWebServerClient {
         return hasExtension(in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 
-    private void appendLink(ArrayList<Path> list, StringBuilder sb) {
+    private void appendLink (ArrayList<Path> list, StringBuilder sb, boolean isDirlist) {
+        if (isDirlist)
+            Collections.sort(list, (o1, o2) ->
+                    o1.getFileName().toString().compareToIgnoreCase(o2.getFileName().toString()));
         for (Path p : list) {
             String u8 = UrlEncodeUTF8.transform(p.toString());
             sb.append("<a href=\"").append(u8).append("\">");
-            sb.append(p.getFileName().toString()).append("</a>").append("<br>\r\n");
+            String filename = isDirlist ? "DIR: "+p.getFileName().toString() : p.getFileName().toString();
+            sb.append(filename).append("</a>").append("<br>\r\n");
         }
+        sb.append("<hr>");
     }
 
     private String createImagePageLink(int idx, Path p) {
@@ -111,7 +125,7 @@ public class NIOWebServerClient {
         if (pa == null) {
             return null;
         }
-        Arrays.sort(pa, Comparator.comparingLong(File::lastModified)); // Sort by date
+        Arrays.sort(pa, comparingLong(File::lastModified)); // Sort by date
 
         fileList = new ArrayList<>(Arrays.asList(pa));
 
@@ -123,6 +137,7 @@ public class NIOWebServerClient {
             Path pp = Paths.get(path).getParent();
             if (pp != null) {
                 String u8 = UrlEncodeUTF8.transform(pp.toString());
+                sb2.append("Here: ").append (path.toString()).append("  --  \r\n");
                 sb2.append("<a href=\"").append(u8).append("\">");
                 sb2.append("*BACK*").append("</a>").append("<hr>\r\n");
             }
@@ -133,6 +148,8 @@ public class NIOWebServerClient {
         for (int idx = 0; idx < fileList.size(); idx++) {
             File fil = fileList.get(idx);
             String name = fil.getName();
+            if (name.endsWith(ThumbManager.DNAME))
+                continue; // Skip thumbs dir
             Path p = Paths.get(path, name);
             String u8 = UrlEncodeUTF8.transform(p.toString());
             if (fil.isDirectory()) {
@@ -158,10 +175,9 @@ public class NIOWebServerClient {
             } else
                 otherfiles.add(p);
         }
-        appendLink(dirs, sb2);
-        appendLink(txtfiles, sb2);
-        appendLink(otherfiles, sb2);
-        sb2.append("<hr>");
+        appendLink(dirs, sb2, true);
+        appendLink(txtfiles, sb2, false);
+        appendLink(otherfiles, sb2, false);
         sb2.append(sb);
         sb2.append("<br>Images: ").append(imageCtr).append("<br>Videos ").append(vidCtr);
         return sb2.toString();
@@ -246,15 +262,18 @@ public class NIOWebServerClient {
         out.write(b);
     }
 
-    private void sendZip(NIOSocket out, String fname) throws IOException {
+    private void sendZip (NIOSocket out, String fname) throws IOException {
         File f = new File(fname);
         byte[] b = Files.readAllBytes(f.toPath());
         mp4Head(out, f.length(), fname);
         out.write(b);
     }
 
-    private void sendHttpBody(String content, NIOSocket out) throws Exception {
-        String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/></head>\r\n"
+    private void sendHtmlOverHttp (String content, NIOSocket out) throws Exception {
+        String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>"
+                + "<meta charset=\"utf-8\"/>"
+                + "<style>"+mystyle+"</style>"
+                + "</head>\r\n"
                 + "<body>" + content + "</body>"
                 + "\r\n</html>";
         out.write(http.getBytes(UrlEncodeUTF8.utf8));
@@ -271,7 +290,7 @@ public class NIOWebServerClient {
         if (mainPage == null) {
             mainPage = formatTextFile(path);
         }
-        sendHttpBody(mainPage, out);
+        sendHtmlOverHttp(mainPage, out);
     }
 
     private void sendImagePage(NIOSocket out, String path) throws Exception {
@@ -282,12 +301,14 @@ public class NIOWebServerClient {
         else {
             String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
             body = "<script>" + myscript + "</script>";
-            body = body + "- Img: "+idx+" - "+ fileList.get(idx).getName() + " - " +
+            File current = fileList.get(idx);
+            body = body + "- Img: "+idx+" - "+ current.getName() + " - " +
+                    humanReadableByteCount(current.length()) + " - " +
                     createNavigationLink(idx, true) +
                     createNavigationLink(idx, false) +
                     "<img src=\"" + img + "\" style=\"width: 100%;\" />";
         }
-        sendHttpBody(body, out);
+        sendHtmlOverHttp(body, out);
     }
 
     private byte[] loadTextFile(String file) throws IOException {

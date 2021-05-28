@@ -46,33 +46,42 @@ public class NIOWebServer {
         service.close();
     }
 
+    private void doListen(NIOServerSocket socket)
+    {
+        NIOWebServerClient client = new NIOWebServerClient(this.basePath);
+
+        socket.listen(new ServerSocketObserverAdapter() {
+            public void newConnection (NIOSocket nioSocket) {
+                System.out.println("Client " + nioSocket.getIp() + " connected.");
+                nioSocket.listen(new SocketObserverAdapter() {
+                    public void packetReceived (NIOSocket socket, byte[] packet) {
+                        String http = new String(packet);
+                        String[] lines = http.split("\r\n");
+                        String[] words = lines[0].split(" ");
+                        try {
+                            client.perform(basePath, words[1], socket);
+                        } catch (Exception e) {
+                            System.out.println("WS client fail: " + e);
+                        }
+                        socket.closeAfterWrite();
+                    }
+
+                    public void connectionBroken (NIOSocket nioSocket, Exception exception) {
+                        System.out.println("Client " + nioSocket.getIp() + " disconnected.");
+                    }
+                });
+            }
+        });
+    }
+
     public void runServer() {
         try {
             service = new NIOService();
-            NIOServerSocket socket = service.openServerSocket(port);
+            NIOServerSocket socket = service.openServerSocket (port, 100);
             NIOWebServerClient client = new NIOWebServerClient(this.basePath);
-            socket.listen(new ServerSocketObserverAdapter() {
-                public void newConnection(NIOSocket nioSocket) {
-                    System.out.println("Client " + nioSocket.getIp() + " connected.");
-                    nioSocket.listen(new SocketObserverAdapter() {
-                        public void packetReceived(NIOSocket socket, byte[] packet) {
-                            String http = new String(packet);
-                            String[] lines = http.split("\r\n");
-                            String[] words = lines[0].split(" ");
-                            try {
-                                client.perform(basePath, words[1], socket);
-                            } catch (Exception e) {
-                                System.out.println("WS client fail: " + e);
-                            }
-                            socket.closeAfterWrite();
-                        }
 
-                        public void connectionBroken(NIOSocket nioSocket, Exception exception) {
-                            System.out.println("Client " + nioSocket.getIp() + " disconnected.");
-                        }
-                    });
-                }
-            });
+            doListen(socket);
+
             socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
             while (true) {
                 if (!service.isOpen()) {

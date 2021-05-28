@@ -1,6 +1,10 @@
 package misc;
 
+import transform.UrlEncodeUTF8;
+
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -29,16 +33,26 @@ import java.util.stream.Stream;
  */
 public class ConfigFile
 {
-    private final String _path;
+    private final String _filename;
+    private String _jarpath;
     private final HashMap<String, Consumer<String[]>> _map = new HashMap<>();
 
     /**
      * Constructor
-     * @param path set file path
+     * @param fname set file path
      */
-    public ConfigFile (String path)
+    public ConfigFile (String fname)
     {
-        _path = path;
+        _jarpath = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+        File f = new File (URI.create("file://"+_jarpath));
+        _jarpath = f.getAbsolutePath();
+        if (_jarpath.endsWith(".jar"))
+        {
+            int idx = _jarpath.lastIndexOf(File.separatorChar)+1;
+            _jarpath = _jarpath.substring(0, idx);
+        }
+        _jarpath = _jarpath+fname;
+        _filename = fname;
     }
 
     /**
@@ -71,9 +85,16 @@ public class ConfigFile
     /**
      * Parse whole config file and execute it line by line
      */
-    public void execute() throws IOException
-    {
-        Stream<String> stream = Files.lines(Paths.get(_path));
+    public void execute() throws Exception {
+        Stream<String> stream;
+        try {
+            System.out.println("traying "+_jarpath);
+            stream = Files.lines(Paths.get(_jarpath));
+        } catch (Exception e) {
+            System.out.print("first chance failed ... ");
+            System.out.println("traying "+_filename);
+            stream = Files.lines(Paths.get(_filename));
+        }
         stream.forEach(this::handleLine);
     }
 }

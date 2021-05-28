@@ -4,13 +4,10 @@ import applications.WebServerGUI;
 import misc.ConfigFile;
 import misc.Tools;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Iterator;
 
 class MainFrame
 {
@@ -36,7 +33,7 @@ class MainFrame
             cf.execute();
             return true;
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             System.out.println("CFG file read error");
             return false;

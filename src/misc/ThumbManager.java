@@ -8,10 +8,11 @@ import java.nio.file.Paths;
 
 public class ThumbManager {
     private final String thumbsDir;
+    public static final String DNAME = "thumbs";
 
     public ThumbManager (String basepath)
     {
-        thumbsDir = basepath+ File.separator+"thumbs";
+        thumbsDir = basepath + File.separator + DNAME;
         try {
             Files.createDirectories(Paths.get(thumbsDir));
         } catch (IOException e) {

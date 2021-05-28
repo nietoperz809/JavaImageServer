@@ -12,6 +12,8 @@ import java.awt.*;
 import java.io.File;
 import java.net.URI;
 
+import static misc.Tools.infoBox;
+
 /**
  * This is the GUI class for the web server
  */
@@ -119,10 +121,11 @@ public class WebServerGUI extends JPanel {
                 int port = Integer.parseInt(portTxt.getText());
                 String path = pathTxt.getText();
                 if (!new File(path).isDirectory())
-                    throw new Exception("no base dir");
+                    throw new Exception("base dir not exist or inaccessible");
                 sockserver = new NIOWebServer(port, path);
             } catch (Exception e) {
                 button.doClick(); // cancel click
+                infoBox (e.toString());
                 return;
             }
             new Thread(() -> {
@@ -134,7 +137,7 @@ public class WebServerGUI extends JPanel {
                         System.out.println(e);
                     }
                 }
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 sockserver.runServer();
             }).start();
         }

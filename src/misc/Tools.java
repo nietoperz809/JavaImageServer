@@ -8,9 +8,15 @@ package misc;
 import misc.gifdecoder.AnimatedGIFReader;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.WritableRaster;
 import java.io.*;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Objects;
 
 /**
@@ -114,5 +120,27 @@ public class Tools
         g.dispose();
 
         return resizedImage;
+    }
+
+    public static void infoBox(String infoMessage, String titleBar)
+    {
+        JOptionPane.showMessageDialog(null, infoMessage, "InfoBox: " + titleBar, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void infoBox(String infoMessage)
+    {
+        JOptionPane.showMessageDialog(null, infoMessage,  "Huh???", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static String humanReadableByteCount(long bytes) {
+        if (-1000 < bytes && bytes < 1000) {
+            return bytes + " B";
+        }
+        CharacterIterator ci = new StringCharacterIterator("kMGTPE");
+        while (bytes <= -999_950 || bytes >= 999_950) {
+            bytes /= 1000;
+            ci.next();
+        }
+        return String.format("%.1f %cB", bytes / 1000.0, ci.current());
     }
 }
