@@ -1,9 +1,6 @@
 package misc;
 
-import transform.UrlEncodeUTF8;
-
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -34,7 +31,7 @@ import java.util.stream.Stream;
 public class ConfigFile
 {
     private final String _filename;
-    private String _jarpath;
+    private String _filepath;
     private final HashMap<String, Consumer<String[]>> _map = new HashMap<>();
 
     /**
@@ -43,15 +40,14 @@ public class ConfigFile
      */
     public ConfigFile (String fname)
     {
-        _jarpath = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-        File f = new File (URI.create("file://"+_jarpath));
-        _jarpath = f.getAbsolutePath();
-        if (_jarpath.endsWith(".jar"))
+        _filepath = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+        _filepath = new File (URI.create("file://"+ _filepath)).getAbsolutePath();
+        if (_filepath.endsWith(".jar"))
         {
-            int idx = _jarpath.lastIndexOf(File.separatorChar)+1;
-            _jarpath = _jarpath.substring(0, idx);
+            int idx = _filepath.lastIndexOf(File.separatorChar)+1;
+            _filepath = _filepath.substring(0, idx);
         }
-        _jarpath = _jarpath+fname;
+        _filepath = _filepath +fname;
         _filename = fname;
     }
 
@@ -88,13 +84,19 @@ public class ConfigFile
     public void execute() throws Exception {
         Stream<String> stream;
         try {
-            System.out.println("traying "+_jarpath);
-            stream = Files.lines(Paths.get(_jarpath));
+            System.out.println("trying "+ _filepath);
+            stream = Files.lines(Paths.get(_filepath));
         } catch (Exception e) {
             System.out.print("first chance failed ... ");
-            System.out.println("traying "+_filename);
+            System.out.println("trying "+_filename);
             stream = Files.lines(Paths.get(_filename));
+            _filepath = _filename;
         }
         stream.forEach(this::handleLine);
+    }
+
+    public String getUsedFilePath()
+    {
+        return _filepath;
     }
 }

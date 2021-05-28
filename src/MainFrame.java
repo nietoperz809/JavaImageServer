@@ -11,32 +11,30 @@ import java.nio.file.Paths;
 
 class MainFrame
 {
-    private static final String settingFile = "serversettings.txt";
+    private static final ConfigFile configFile = new ConfigFile("serversettings.txt");
+
     private static boolean dirty = false;
 
-    private static FtpServerGUI ftp = new FtpServerGUI();
-    private static WebServerGUI web = new WebServerGUI();
-    private static ConfigGUI config = new ConfigGUI();
+    private static final FtpServerGUI ftp = new FtpServerGUI();
+    private static final WebServerGUI web = new WebServerGUI();
+    private static final ConfigGUI config = new ConfigGUI();
 
-    private static boolean loadConfiguration()
+    private static void loadConfiguration()
     {
-        ConfigFile cf = new ConfigFile(settingFile);
-        cf.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
-        cf.setAction("ftp-path", strings -> ftp.setPathTxt(strings[0]));
-        cf.setAction("ftp-start", strings -> ftp.button.simulateClick());
-        cf.setAction("http-port", strings -> web.setPortTxt(strings[0]));
-        cf.setAction("http-path", strings -> web.setPathTxt(strings[0]));
-        cf.setAction("http-start", strings -> web.button.simulateClick());
-        cf.setAction("http-browser-start", strings -> web.browser_startflag = true);
+        configFile.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
+        configFile.setAction("ftp-path", strings -> ftp.setPathTxt(strings[0]));
+        configFile.setAction("ftp-start", strings -> ftp.button.simulateClick());
+        configFile.setAction("http-port", strings -> web.setPortTxt(strings[0]));
+        configFile.setAction("http-path", strings -> web.setPathTxt(strings[0]));
+        configFile.setAction("http-start", strings -> web.button.simulateClick());
+        configFile.setAction("http-browser-start", strings -> web.browser_startflag = true);
         try
         {
-            cf.execute();
-            return true;
+            configFile.execute();
         }
         catch (Exception e)
         {
             System.out.println("CFG file read error");
-            return false;
         }
     }
 
@@ -54,7 +52,7 @@ class MainFrame
         tabpane.addChangeListener(e -> {
             if (tabpane.getSelectedIndex() == 2) {
                 try {
-                    byte[] conf = Files.readAllBytes(Paths.get(settingFile));
+                    byte[] conf = Files.readAllBytes(Paths.get(configFile.getUsedFilePath()));
                     String confTxt = new String(conf);
                     config.getTextPanel().setText(confTxt);
                     dirty = true;
@@ -65,7 +63,7 @@ class MainFrame
                 if (dirty) {
                     try {
                         String confTxt = config.getTextPanel().getText();
-                        Files.write (Paths.get(settingFile), confTxt.getBytes());
+                        Files.write (Paths.get(configFile.getUsedFilePath()), confTxt.getBytes());
                         loadConfiguration();
                         dirty = false;
                     } catch (IOException ioException) {
