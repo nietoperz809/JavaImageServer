@@ -59,7 +59,7 @@ public class NIOWebServer {
                         String[] lines = http.split("\r\n");
                         String[] words = lines[0].split(" ");
                         try {
-                            client.perform(basePath, words[1], socket);
+                            client.handleRequest(basePath, words[1], socket);
                         } catch (Exception e) {
                             System.out.println("WS client fail: " + e);
                         }

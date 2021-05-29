@@ -9,13 +9,15 @@ import java.nio.file.Paths;
 public class ThumbManager {
     private final String thumbsDir;
     public static final String DNAME = "thumbs";
+    private boolean folderExists = false;
 
     public ThumbManager (String basepath)
     {
         thumbsDir = basepath + File.separator + DNAME;
         try {
             Files.createDirectories(Paths.get(thumbsDir));
-        } catch (IOException e) {
+            folderExists = true;
+        } catch (Exception e) {
             System.out.println("failed to create thumbs dir: "+e);
         }
     }
@@ -31,6 +33,8 @@ public class ThumbManager {
 
     private byte[] loadThumb (String name)
     {
+        if (!folderExists)
+            return null;
         Path p = Paths.get(thumbsDir+File.separator+name);
         try {
             return Files.readAllBytes(p);
@@ -41,11 +45,13 @@ public class ThumbManager {
 
     private void saveThumb (byte[] data, String name)
     {
-        Path p = Paths.get(thumbsDir+File.separator+name);
-        try {
-            Files.write (p, data);
-        } catch (IOException e) {
-            System.out.println("cannot store thumb: "+e);
+        if (folderExists) {
+            Path p = Paths.get(thumbsDir + File.separator + name);
+            try {
+                Files.write(p, data);
+            } catch (IOException e) {
+                System.out.println("cannot store thumb: " + e);
+            }
         }
     }
 }

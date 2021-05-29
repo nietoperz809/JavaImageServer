@@ -11,10 +11,8 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.WritableRaster;
 import java.io.*;
+import java.net.URI;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Objects;
@@ -56,7 +54,7 @@ public class Tools
      *
      * @param path Path of jpeg file
      * @return byte array of jpeg data
-     * @throws Exception
+     * @throws Exception if smth. gone wrong
      */
     public static byte[] reduceImg (File path, int xy) throws Exception
     {
@@ -142,5 +140,18 @@ public class Tools
             ci.next();
         }
         return String.format("%.1f %cB", bytes / 1000.0, ci.current());
+    }
+
+    /**
+     * Get the path of the filesystem where a class is at runtime
+     * @param c The class
+     * @return The Path as string
+     */
+    public static String getPathOfClass (Class<?> c) {
+        String fp = c.getProtectionDomain().getCodeSource().getLocation().getPath();
+        fp = new File(URI.create("file://" + fp)).getAbsolutePath();
+        if (fp.endsWith(".jar"))
+            return fp.substring(0, fp.lastIndexOf(File.separatorChar) + 1);
+        return fp + File.separatorChar;
     }
 }

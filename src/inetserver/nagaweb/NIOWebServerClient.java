@@ -14,11 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Comparator.*;
+import static java.util.Comparator.comparingLong;
 import static misc.Tools.hasExtension;
 import static misc.Tools.humanReadableByteCount;
 
@@ -30,8 +28,6 @@ public class NIOWebServerClient {
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
     private final String m_basePath;
-    private int pathHash;
-    private ArrayList<File> fileList;
     private final String myscript = "document.onkeydown = checkKey;\n" +
             "function checkKey(e) {\n" +
             "    e = e || window.event;\n" +
@@ -45,10 +41,11 @@ public class NIOWebServerClient {
             "a:visited {\n" +
             "  color: green;\n" +
             "}\n";
+    private int pathHash;
+    private ArrayList<File> fileList;
     private ThumbManager thumbs;
 
-    public NIOWebServerClient (String basePath)
-    {
+    public NIOWebServerClient(String basePath) {
         m_basePath = basePath;
     }
 
@@ -72,14 +69,16 @@ public class NIOWebServerClient {
         return hasExtension(in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 
-    private void appendLink (ArrayList<Path> list, StringBuilder sb, boolean isDirlist) {
+    private void appendLink(ArrayList<Path> list, StringBuilder sb, boolean isDirlist) {
+        if (list.size() == 0)
+            return;
         if (isDirlist)
-            Collections.sort(list, (o1, o2) ->
+            list.sort((o1, o2) ->
                     o1.getFileName().toString().compareToIgnoreCase(o2.getFileName().toString()));
         for (Path p : list) {
             String u8 = UrlEncodeUTF8.transform(p.toString());
             sb.append("<a href=\"").append(u8).append("\">");
-            String filename = isDirlist ? "DIR: "+p.getFileName().toString() : p.getFileName().toString();
+            String filename = isDirlist ? "&lt;" + p.getFileName().toString() + "&gt;" : p.getFileName().toString();
             sb.append(filename).append("</a>").append("<br>\r\n");
         }
         sb.append("<hr>");
@@ -133,8 +132,8 @@ public class NIOWebServerClient {
         fileList = new ArrayList<>(Arrays.asList(pa));
         int totalsize = fileList.size();
         fileList = (ArrayList<File>) fileList.stream()
-                .filter (p -> p.length() < MAXSIZE)
-                .filter (p -> !p.getName().endsWith(ThumbManager.DNAME))
+                .filter(p -> p.length() < MAXSIZE)
+                .filter(p -> !p.getName().endsWith(ThumbManager.DNAME))
                 .collect(Collectors.toList());
         int filtsize = fileList.size();
 
@@ -142,16 +141,16 @@ public class NIOWebServerClient {
         ArrayList<Path> txtfiles = new ArrayList<>();
         ArrayList<Path> otherfiles = new ArrayList<>();
 
-        if (!path.equals(m_basePath)) {
-            Path pp = Paths.get(path).getParent();
-            if (pp != null) {
-                String u8 = UrlEncodeUTF8.transform(pp.toString());
-                sb2.append("Here: ").append (path.toString()).append("  --  \r\n");
-                sb2.append("Objects: ").append(totalsize).append(" --- Omitted: ").append(totalsize-filtsize);
-                sb2.append(" --- <a href=\"").append(u8).append("\">");
-                sb2.append("*BACK*").append("</a>").append("<hr>\r\n");
-            }
+        sb2.append("Here: ").append(path).append("  --  \r\n");
+        sb2.append("Objects: ").append(totalsize).append(" --- Omitted: ").append(totalsize - filtsize);
+        Path pp = Paths.get(path).getParent();
+        if (pp != null || !path.equals(m_basePath)) {
+            String u8 = UrlEncodeUTF8.transform(pp.toString());
+            sb2.append(" --- <a href=\"").append(u8).append("\">");
+            sb2.append("*BACK*").append("</a>");
         }
+        sb2.append("<hr>\r\n");
+
         int imageCtr = 0;
         int vidCtr = 0;
 
@@ -270,17 +269,17 @@ public class NIOWebServerClient {
         out.write(b);
     }
 
-    private void sendZip (NIOSocket out, String fname) throws IOException {
+    private void sendZip(NIOSocket out, String fname) throws IOException {
         File f = new File(fname);
         byte[] b = Files.readAllBytes(f.toPath());
         mp4Head(out, f.length(), fname);
         out.write(b);
     }
 
-    private void sendHtmlOverHttp (String content, NIOSocket out) throws Exception {
+    private void sendHtmlOverHttp(String content, NIOSocket out) throws Exception {
         String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>"
                 + "<meta charset=\"utf-8\"/>"
-                + "<style>"+mystyle+"</style>"
+                + "<style>" + mystyle + "</style>"
                 + "</head>\r\n"
                 + "<body>" + content + "</body>"
                 + "\r\n</html>";
@@ -289,9 +288,10 @@ public class NIOWebServerClient {
 
     /**
      * Tx main Gallery
-     * @param out Socket
+     *
+     * @param out  Socket
      * @param path points to image stuff
-     * @throws Exception if smth. gone grong
+     * @throws Exception if smth. gone wrong
      */
     private void sendGalleryPage(NIOSocket out, String path) throws Exception {
         String mainPage = buildGalleryPage(path);
@@ -310,7 +310,7 @@ public class NIOWebServerClient {
             String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
             body = "<script>" + myscript + "</script>";
             File current = fileList.get(idx);
-            body = body + "- Img: "+idx+" - "+ current.getName() + " - " +
+            body = body + "- Img: " + idx + " - " + current.getName() + " - " +
                     humanReadableByteCount(current.length()) + " - " +
                     createNavigationLink(idx, true) +
                     createNavigationLink(idx, false) +
@@ -319,25 +319,32 @@ public class NIOWebServerClient {
         sendHtmlOverHttp(body, out);
     }
 
-    private byte[] loadTextFile(String file) throws IOException {
+    private byte[] loadTextFile(String file) throws Exception {
         Path p = Paths.get(file);
         return Files.readAllBytes(p);
     }
 
-    private String formatTextFile(String path) throws IOException {
-        byte[] b = loadTextFile(path);
-        String cnt = new String(b, StandardCharsets.UTF_8);
+    private String formatTextFile(String path) {
+        String cnt;
+        byte[] b = new byte[0];
+        try {
+            b = loadTextFile(path);
+            cnt = new String(b, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            cnt = e.toString();
+        }
         return "<pre>\r\n" + cnt + "</pre>";
     }
 
     /**
      * webserver main function
-     * @param imagePath point to image stuff on disk
-     * @param cmd http command
+     *
+     * @param imagePath    point to image stuff on disk
+     * @param cmd          http command
      * @param outputSocket socket for TX
      * @throws Exception if smth gone wrong
      */
-    void perform (String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
+    void handleRequest(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
         String[] si = cmd.split(" ");
         String path = UrlEncodeUTF8.retransform(si[0].substring(1));
 

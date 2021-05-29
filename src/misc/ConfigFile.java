@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static misc.Tools.getPathOfClass;
+
 /**
  * A line of the config file is organised as following:
  * keyword :: p1 :: p2 :: p3 ... pn
@@ -36,19 +38,12 @@ public class ConfigFile
 
     /**
      * Constructor
-     * @param fname set file path
+     * @param fileName name of config file
      */
-    public ConfigFile (String fname)
+    public ConfigFile (String fileName)
     {
-        _filepath = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-        _filepath = new File (URI.create("file://"+ _filepath)).getAbsolutePath();
-        if (_filepath.endsWith(".jar"))
-        {
-            int idx = _filepath.lastIndexOf(File.separatorChar)+1;
-            _filepath = _filepath.substring(0, idx);
-        }
-        _filepath = _filepath +fname;
-        _filename = fname;
+        _filepath = getPathOfClass (this.getClass()) + fileName;
+        _filename = fileName;
     }
 
     /**
