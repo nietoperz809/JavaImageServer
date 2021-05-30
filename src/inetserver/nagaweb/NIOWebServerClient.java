@@ -7,6 +7,8 @@ import naga.NIOSocket;
 import transform.UrlEncodeUTF8;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -24,7 +26,7 @@ import static misc.Tools.humanReadableByteCount;
  * @author Administrator
  */
 public class NIOWebServerClient {
-    private static final long MAXSIZE = 20_000_000;
+    private static final long MAXSIZE = 500_000_000;
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
     private final String m_basePath;
@@ -84,12 +86,21 @@ public class NIOWebServerClient {
         sb.append("<hr>");
     }
 
-    private String createImagePageLink(int idx, Path p) {
+    private String createImagePageLink(int idx, Path path) {
         return "<a href=\""
                 + "show.html?img=" + idx
                 + "\" target=\"_blank\"><img src=\""
                 + pathHash + NUMSEP + idx + ".jpg"
-                + "\" title=\"" + p.getFileName().toString() + "\""
+                + "\" title=\"" + path.getFileName().toString() + "\""
+                + "></a>\r\n";
+    }
+
+    private String createVideoPageLink(int idx, Path path) {
+        return "<a href=\""
+                + "show.html?vid=" + idx
+                + "\" target=\"_blank\"><img src=\""
+                + pathHash + NUMSEP + idx + ".jpg"
+                + "\" title=\"" + path.getFileName().toString() + "\""
                 + "></a>\r\n";
     }
 
@@ -166,10 +177,16 @@ public class NIOWebServerClient {
                 sb.append(createImagePageLink(idx, p));
             } else if (isVideo(name)) {
                 vidCtr++;
-                sb.append("<video width=\"320\" height=\"240\" controls src=\"");
-                sb.append(u8).append("\">");
-                sb.append("HTML5 Video not supported</video>");
-                sb.append("\r\n");
+                try {
+                    thumbs.getVideoThumbnail(fil);
+                } catch (Exception e) {
+                    System.out.println("vtn failed" + e);
+                }
+                sb.append(createVideoPageLink(idx, p));
+//                sb.append("<video width=\"320\" height=\"240\" controls src=\"");
+//                sb.append(u8).append("\">");
+//                sb.append("HTML5 Video not supported</video>");
+//                sb.append("\r\n");
             } else if (isAudio(name)) {
                 sb.append("<figure><figcaption>");
                 sb.append(p.getFileName().toString());
@@ -251,22 +268,49 @@ public class NIOWebServerClient {
      * @param out output stream
      */
     private void sendJpegSmall(NIOSocket out, File f) throws Exception {
-        byte[] bytes = thumbs.getThumbnail(f);
+        byte[] bytes;
+        if (isVideo(f.getName()))
+            bytes = thumbs.getVideoThumbnail(f);
+        else
+            bytes = thumbs.getImageThumbnail(f);
         imgHead(out, bytes.length);
         out.write(bytes);
     }
 
-    private void sendJpegOriginal(NIOSocket out, File f) throws IOException {
-        byte[] b = Files.readAllBytes(f.toPath());
-        imgHead(out, b.length);
-        out.write(b);
+    private void sendJpegOriginal(NIOSocket out, File f) throws Exception {
+        //byte[] b = Files.readAllBytes(f.toPath());
+        imgHead(out, (int) f.length());
+        //out.write(b);
+        transmitFileInChunks(out, f);
+    }
+
+    private void transmitFileInChunks (NIOSocket out, File f) throws Exception {
+        FileInputStream fi = new FileInputStream(f);
+        long total= 0;
+        boolean ret;
+        while (true)
+        {
+            int amount = Math.min (fi.available(), 100_000);
+            if (amount <= 0)
+                break;
+            byte[] b = new byte[amount];
+            fi.read(b);
+            ret = out.write(b);
+            while (ret == false)
+            {
+                Thread.sleep(100);
+                ret = out.write (b);
+            }
+            total += amount;
+            System.out.println("Chunked " + Tools.humanReadableByteCount(total));
+        }
+        fi.close();
     }
 
     private void sendMedia(NIOSocket out, String fname) throws Exception {
         File f = new File(fname);
-        byte[] b = Files.readAllBytes(f.toPath());
         mp4Head(out, f.length(), fname);
-        out.write(b);
+        transmitFileInChunks(out, f);
     }
 
     private void sendZip(NIOSocket out, String fname) throws IOException {
@@ -301,20 +345,30 @@ public class NIOWebServerClient {
         sendHtmlOverHttp(mainPage, out);
     }
 
-    private void sendImagePage(NIOSocket out, String path) throws Exception {
+    private void sendMediaPage(NIOSocket out, String path) throws Exception {
         int idx = Integer.parseInt(path.substring(path.lastIndexOf('=') + 1));
         String body;
         if (fileList == null)
             body = "<h1>Please reload gallery page</h1>";
         else {
-            String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
-            body = "<script>" + myscript + "</script>";
             File current = fileList.get(idx);
-            body = body + "- Img: " + idx + " - " + current.getName() + " - " +
+            body = "<script>" + myscript + "</script>";
+            String headline = ": " + idx + " - " + current.getName() + " - " +
                     humanReadableByteCount(current.length()) + " - " +
                     createNavigationLink(idx, true) +
-                    createNavigationLink(idx, false) +
-                    "<img src=\"" + img + "\" style=\"width: 100%;\" />";
+                    createNavigationLink(idx, false) + "<hr>";
+            if (isVideo(current.getName())) {
+                String u8 = UrlEncodeUTF8.transform(current.getAbsolutePath());
+                body = body + "- Vid" + headline +
+                        //"<video width=\"320\" height=\"240\" controls src=\"" + u8 + "\">" +
+                        "<video controls src=\"" + u8 + "\" style=\"width: 100%;\" />" +
+
+                        "HTML5 Video not supported</video>\r\n";
+            } else {
+                String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
+                body = body + "- Img" + headline +
+                        "<img src=\"" + img + "\" style=\"width: 100%;\" />";
+            }
         }
         sendHtmlOverHttp(body, out);
     }
@@ -378,7 +432,7 @@ public class NIOWebServerClient {
             byte[] bt = Tools.gatResourceAsArray(path);
             outputSocket.write(bt);
         } else if (path.startsWith("show.html")) {
-            sendImagePage(outputSocket, path);
+            sendMediaPage(outputSocket, path);
         } else {
             if (path.isEmpty()) {
                 path = imagePath;

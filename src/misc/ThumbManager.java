@@ -22,11 +22,21 @@ public class ThumbManager {
         }
     }
 
-    public byte[] getThumbnail (File f) throws Exception {
+    public byte[] getImageThumbnail(File f) throws Exception {
         byte[] bytes = loadThumb(f.getName());
         if (bytes == null) {
             bytes = Tools.reduceImg(f, 100);
             saveThumb(bytes, f.getName());
+        }
+        return bytes;
+    }
+
+    public byte[] getVideoThumbnail(File f) throws Exception {
+        String name = f.getName()+".jpg";
+        byte[] bytes = loadThumb(name);
+        if (bytes == null) {
+            bytes = VideoThumbCreator.makeSnapshot(f.getAbsolutePath(), 1000, 100, 100);
+            saveThumb(bytes, name);
         }
         return bytes;
     }

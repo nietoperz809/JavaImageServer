@@ -5,8 +5,8 @@ ftp-path :: C:\Users\Administrator\Desktop\fisk\main
 
 *** set http params and start web server ***
 http-port :: 80
-* http-path :: C:\Users\Administrator\Desktop\feet
-http-path :: C:\
+http-path :: C:\Users\Administrator\Desktop\test6
+* http-path :: C:\
 http-start
 http-browser-start
 
