@@ -108,6 +108,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket
 
 	public boolean println (String in)
 	{
+		//System.out.println(in);
 		in = in + "\r\n";
 		return write(in.getBytes(StandardCharsets.UTF_8), null);
 	}

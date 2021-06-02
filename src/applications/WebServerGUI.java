@@ -140,6 +140,10 @@ public class WebServerGUI extends JPanel {
                 //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 sockserver.runServer();
             }).start();
+
+            new Thread(() -> {
+                sockserver.videoStreamer(9988);
+            }).start();
         }
     }
 

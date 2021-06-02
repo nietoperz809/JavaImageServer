@@ -21,6 +21,8 @@ SOFTWARE.
 */
 package inetserver.nagaweb;
 
+import inetserver.videostream.RangeResponseTransmitter;
+import misc.Http;
 import naga.*;
 
 import java.io.IOException;
@@ -46,7 +48,7 @@ public class NIOWebServer {
         service.close();
     }
 
-    private void doListen(NIOServerSocket socket)
+    private void doListen (NIOServerSocket socket)
     {
         NIOWebServerClient client = new NIOWebServerClient(this.basePath);
 
@@ -55,11 +57,9 @@ public class NIOWebServer {
                 System.out.println("Client " + nioSocket.getIp() + " connected.");
                 nioSocket.listen(new SocketObserverAdapter() {
                     public void packetReceived (NIOSocket socket, byte[] packet) {
-                        String http = new String(packet);
-                        String[] lines = http.split("\r\n");
-                        String[] words = lines[0].split(" ");
+                        Http http = new Http(packet);
                         try {
-                            client.handleRequest(basePath, words[1], socket);
+                            client.handleRequest(basePath, http, socket);
                         } catch (Exception e) {
                             System.out.println("WS client fail: " + e);
                         }
@@ -79,9 +79,7 @@ public class NIOWebServer {
             service = new NIOService();
             NIOServerSocket socket = service.openServerSocket (port, 100);
             NIOWebServerClient client = new NIOWebServerClient(this.basePath);
-
             doListen(socket);
-
             socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
             while (true) {
                 if (!service.isOpen()) {
@@ -94,4 +92,39 @@ public class NIOWebServer {
         }
     }
 
+    public void videoStreamer(int port) {
+        try {
+            NIOService serv2 = new NIOService();
+            NIOServerSocket socket = serv2.openServerSocket (port, 100);
+
+            socket.listen(new ServerSocketObserverAdapter() {
+                public void newConnection (NIOSocket nioSocket) {
+                    nioSocket.listen(new SocketObserverAdapter() {
+                        public void packetReceived (NIOSocket socket, byte[] packet) {
+                            Http http = new Http(packet);
+                            try {
+                                RangeResponseTransmitter.doIt(socket, http);
+                            } catch (Exception e) {
+                                System.out.println("RRT failed: "+e);
+                            }
+                            socket.closeAfterWrite();
+                        }
+
+                        public void connectionBroken (NIOSocket nioSocket, Exception exception) {
+                        }
+                    });
+                }
+            });
+
+            socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
+            while (true) {
+                if (!serv2.isOpen()) {
+                    return;
+                }
+                serv2.selectBlocking();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

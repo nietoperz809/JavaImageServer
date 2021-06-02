@@ -91,7 +91,30 @@ public class Tools
         return false;
     }
 
+    public static String getExtension (String in)
+    {
+        int i = in.lastIndexOf('.');
+        if (i > 0) {
+            return in.substring(i);
+        }
+        return null;
+    }
 
+    public static boolean isVideo(String in) {
+        return hasExtension(in, ".mp4", ".mkv", ".webm", ".ogv", ".3gp");
+    }
+
+    public static boolean isAudio(String in) {
+        return hasExtension(in, ".mp3", ".ogg", ".wav");
+    }
+
+    public static boolean isImage(String in) {
+        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp", "gif");
+    }
+
+    public static boolean isZip(String in) {
+        return hasExtension(in, ".zip");
+    }
 
     /**
      * Creates Image copy of new size

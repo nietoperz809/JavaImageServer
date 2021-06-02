@@ -1,6 +1,7 @@
 package inetserver.nagaweb;
 
 
+import misc.Http;
 import misc.ThumbManager;
 import misc.Tools;
 import naga.NIOSocket;
@@ -8,7 +9,6 @@ import transform.UrlEncodeUTF8;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,8 +19,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
-import static misc.Tools.hasExtension;
-import static misc.Tools.humanReadableByteCount;
+import static misc.Tools.*;
 
 /**
  * @author Administrator
@@ -51,23 +50,7 @@ public class NIOWebServerClient {
         m_basePath = basePath;
     }
 
-    private boolean isVideo(String in) {
-        return hasExtension(in, ".mp4", ".mkv", ".webm", ".ogv", ".3gp");
-    }
-
-    private boolean isAudio(String in) {
-        return hasExtension(in, ".mp3", ".ogg", ".wav");
-    }
-
-    private boolean isImage(String in) {
-        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp", "gif");
-    }
-
-    private boolean isZip(String in) {
-        return hasExtension(in, ".zip");
-    }
-
-    private boolean isText(String in) {
+    public static boolean isText(String in) {
         return hasExtension(in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 
@@ -183,10 +166,6 @@ public class NIOWebServerClient {
                     System.out.println("vtn failed" + e);
                 }
                 sb.append(createVideoPageLink(idx, p));
-//                sb.append("<video width=\"320\" height=\"240\" controls src=\"");
-//                sb.append(u8).append("\">");
-//                sb.append("HTML5 Video not supported</video>");
-//                sb.append("\r\n");
             } else if (isAudio(name)) {
                 sb.append("<figure><figcaption>");
                 sb.append(p.getFileName().toString());
@@ -278,19 +257,17 @@ public class NIOWebServerClient {
     }
 
     private void sendJpegOriginal(NIOSocket out, File f) throws Exception {
-        //byte[] b = Files.readAllBytes(f.toPath());
         imgHead(out, (int) f.length());
-        //out.write(b);
         transmitFileInChunks(out, f);
     }
 
     private void transmitFileInChunks (NIOSocket out, File f) throws Exception {
         FileInputStream fi = new FileInputStream(f);
-        long total= 0;
         boolean ret;
+        long total = 0;
         while (true)
         {
-            int amount = Math.min (fi.available(), 100_000);
+            int amount = Math.min (fi.available(), 0xA00000);
             if (amount <= 0)
                 break;
             byte[] b = new byte[amount];
@@ -301,6 +278,9 @@ public class NIOWebServerClient {
                 Thread.sleep(100);
                 ret = out.write (b);
             }
+            b = null;  // GC should catch it;
+            System.gc ();
+            System.runFinalization ();
             total += amount;
             System.out.println("Chunked " + Tools.humanReadableByteCount(total));
         }
@@ -360,10 +340,7 @@ public class NIOWebServerClient {
             if (isVideo(current.getName())) {
                 String u8 = UrlEncodeUTF8.transform(current.getAbsolutePath());
                 body = body + "- Vid" + headline +
-                        //"<video width=\"320\" height=\"240\" controls src=\"" + u8 + "\">" +
-                        "<video controls src=\"" + u8 + "\" style=\"width: 100%;\" />" +
-
-                        "HTML5 Video not supported</video>\r\n";
+                        "<video controls id=\"video\" src=\""+u8+"\" autoplay=\"autoplay\" />";
             } else {
                 String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
                 body = body + "- Img" + headline +
@@ -394,50 +371,48 @@ public class NIOWebServerClient {
      * webserver main function
      *
      * @param imagePath    point to image stuff on disk
-     * @param cmd          http command
+     * @param http          http object
      * @param outputSocket socket for TX
      * @throws Exception if smth gone wrong
      */
-    void handleRequest(String imagePath, String cmd, NIOSocket outputSocket) throws Exception {
-        String[] si = cmd.split(" ");
-        String path = UrlEncodeUTF8.retransform(si[0].substring(1));
-
-        if (isImage(path)) {
-            path = path.substring(0, path.lastIndexOf('.'));
-            if (path.startsWith(BIGIMAGE)) {
-                path = path.substring(0, path.indexOf(NUMSEP));
-                int idx = Integer.parseInt(path.substring(5));
+    void handleRequest (String imagePath, Http http, NIOSocket outputSocket) throws Exception {
+        String resource = UrlEncodeUTF8.retransform(http.getRequestedResource());
+        if (isImage(resource)) {
+            resource = resource.substring(0, resource.lastIndexOf('.'));
+            if (resource.startsWith(BIGIMAGE)) {
+                resource = resource.substring(0, resource.indexOf(NUMSEP));
+                int idx = Integer.parseInt(resource.substring(5));
                 sendJpegOriginal(outputSocket, fileList.get(idx));
             } else {
-                path = path.substring(path.indexOf(NUMSEP) + 1);
-                int idx = Integer.parseInt(path);
+                resource = resource.substring(resource.indexOf(NUMSEP) + 1);
+                int idx = Integer.parseInt(resource);
                 sendJpegSmall(outputSocket, fileList.get(idx));
             }
-        } else if (isZip(path)) {
-            sendZip(outputSocket, path);
-        } else if (isVideo(path)) {
-            sendMedia(outputSocket, path);
-        } else if (isAudio(path)) {
-            sendMedia(outputSocket, path);
-        } else if (isText(path)) {
-            String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile(path) + "</html>";
+        } else if (isZip(resource)) {
+            sendZip(outputSocket, resource);
+        } else if (isVideo(resource)) {
+            sendMedia(outputSocket, resource);
+        } else if (isAudio(resource)) {
+            sendMedia(outputSocket, resource);
+        } else if (isText(resource)) {
+            String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile(resource) + "</html>";
             outputSocket.write(s.getBytes(StandardCharsets.UTF_8));
-        } else if (path.equals("favicon.ico")) {
-            byte[] bt = Tools.gatResourceAsArray(path);
+        } else if (resource.equals("favicon.ico")) {
+            byte[] bt = Tools.gatResourceAsArray(resource);
             outputSocket.write(bt);
-        } else if (path.equals("backarrow.ico")) {
-            byte[] bt = Tools.gatResourceAsArray(path);
+        } else if (resource.equals("backarrow.ico")) {
+            byte[] bt = Tools.gatResourceAsArray(resource);
             outputSocket.write(bt);
-        } else if (path.equals("fwdarrow.ico")) {
-            byte[] bt = Tools.gatResourceAsArray(path);
+        } else if (resource.equals("fwdarrow.ico")) {
+            byte[] bt = Tools.gatResourceAsArray(resource);
             outputSocket.write(bt);
-        } else if (path.startsWith("show.html")) {
-            sendMediaPage(outputSocket, path);
+        } else if (resource.startsWith("show.html")) {
+            sendMediaPage(outputSocket, resource);
         } else {
-            if (path.isEmpty()) {
-                path = imagePath;
+            if (resource.isEmpty()) {
+                resource = imagePath;
             }
-            sendGalleryPage(outputSocket, path);
+            sendGalleryPage(outputSocket, resource);
         }
     }
 }
