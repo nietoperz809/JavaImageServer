@@ -25,7 +25,7 @@ public class Http {
         return getRequestParts()[1].substring(1);
     }
 
-    public String getValue (String key)
+    public String getHeaderValue(String key)
     {
         key = key.toLowerCase();
         for (String s: httpLines)

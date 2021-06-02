@@ -5,6 +5,7 @@ package applications;/*
  */
 
 import inetserver.nagaweb.NIOWebServer;
+import inetserver.videostream.RangeResponseTransmitter;
 import misc.OnOffButton;
 
 import javax.swing.*;
@@ -141,8 +142,13 @@ public class WebServerGUI extends JPanel {
                 sockserver.runServer();
             }).start();
 
+            // Start video stream server
             new Thread(() -> {
-                sockserver.videoStreamer(9988);
+                RangeResponseTransmitter rrt = new RangeResponseTransmitter();
+//                rrt.setVideo("C:\\Users\\Administrator\\Desktop\\test6");
+//                rrt.setVideo("c:\\input.mp4");
+                rrt.startServer(9988);
+                rrt.setVideo("");
             }).start();
         }
     }

@@ -1,6 +1,7 @@
 package inetserver.nagaweb;
 
 
+import inetserver.videostream.RangeResponseTransmitter;
 import misc.Http;
 import misc.ThumbManager;
 import misc.Tools;
@@ -10,6 +11,7 @@ import transform.UrlEncodeUTF8;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -338,9 +340,12 @@ public class NIOWebServerClient {
                     createNavigationLink(idx, true) +
                     createNavigationLink(idx, false) + "<hr>";
             if (isVideo(current.getName())) {
-                String u8 = UrlEncodeUTF8.transform(current.getAbsolutePath());
+                InetAddress inetAddress = InetAddress.getLocalHost();
+                String vidserv = "http://"+inetAddress.getHostAddress()+":9988"; // server
+                String vid =current.getAbsolutePath(); // video
+                RangeResponseTransmitter.instance.setVideo(vid);
                 body = body + "- Vid" + headline +
-                        "<video controls id=\"video\" src=\""+u8+"\" autoplay=\"autoplay\" />";
+                        "<video controls id=\"video\" src=\""+vidserv+"\" autoplay=\"autoplay\" />";
             } else {
                 String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
                 body = body + "- Img" + headline +

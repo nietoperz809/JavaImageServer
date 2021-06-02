@@ -91,40 +91,4 @@ public class NIOWebServer {
             e.printStackTrace();
         }
     }
-
-    public void videoStreamer(int port) {
-        try {
-            NIOService serv2 = new NIOService();
-            NIOServerSocket socket = serv2.openServerSocket (port, 100);
-
-            socket.listen(new ServerSocketObserverAdapter() {
-                public void newConnection (NIOSocket nioSocket) {
-                    nioSocket.listen(new SocketObserverAdapter() {
-                        public void packetReceived (NIOSocket socket, byte[] packet) {
-                            Http http = new Http(packet);
-                            try {
-                                RangeResponseTransmitter.doIt(socket, http);
-                            } catch (Exception e) {
-                                System.out.println("RRT failed: "+e);
-                            }
-                            socket.closeAfterWrite();
-                        }
-
-                        public void connectionBroken (NIOSocket nioSocket, Exception exception) {
-                        }
-                    });
-                }
-            });
-
-            socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
-            while (true) {
-                if (!serv2.isOpen()) {
-                    return;
-                }
-                serv2.selectBlocking();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
