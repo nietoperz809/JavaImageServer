@@ -1,7 +1,7 @@
 package inetserver.nagaweb;
 
 
-import inetserver.videostream.RangeResponseTransmitter;
+import inetserver.videostream.ChunkWiseTransmitter;
 import misc.Http;
 import misc.ThumbManager;
 import misc.Tools;
@@ -27,7 +27,7 @@ import static misc.Tools.*;
  * @author Administrator
  */
 public class NIOWebServerClient {
-    private static final long MAXSIZE = 500_000_000;
+    //private static final long MAXSIZE = 500_000_000;
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
     private final String m_basePath;
@@ -128,7 +128,7 @@ public class NIOWebServerClient {
         fileList = new ArrayList<>(Arrays.asList(pa));
         int totalsize = fileList.size();
         fileList = (ArrayList<File>) fileList.stream()
-                .filter(p -> p.length() < MAXSIZE)
+                //.filter(p -> p.length() < MAXSIZE)
                 .filter(p -> !p.getName().endsWith(ThumbManager.DNAME))
                 .collect(Collectors.toList());
         int filtsize = fileList.size();
@@ -275,7 +275,7 @@ public class NIOWebServerClient {
             byte[] b = new byte[amount];
             fi.read(b);
             ret = out.write(b);
-            while (ret == false)
+            while (!ret)
             {
                 Thread.sleep(100);
                 ret = out.write (b);
@@ -341,9 +341,10 @@ public class NIOWebServerClient {
                     createNavigationLink(idx, false) + "<hr>";
             if (isVideo(current.getName())) {
                 InetAddress inetAddress = InetAddress.getLocalHost();
-                String vidserv = "http://"+inetAddress.getHostAddress()+":9988"; // server
+                String vidserv = "http://"+inetAddress.getHostAddress()+":" +
+                        ChunkWiseTransmitter.getInstance().getPort(); // server
                 String vid =current.getAbsolutePath(); // video
-                RangeResponseTransmitter.instance.setVideo(vid);
+                ChunkWiseTransmitter.getInstance().setVideo(vid);
                 body = body + "- Vid" + headline +
                         "<video controls id=\"video\" src=\""+vidserv+"\" autoplay=\"autoplay\" />";
             } else {
@@ -362,7 +363,7 @@ public class NIOWebServerClient {
 
     private String formatTextFile(String path) {
         String cnt;
-        byte[] b = new byte[0];
+        byte[] b; // = new byte[0];
         try {
             b = loadTextFile(path);
             cnt = new String(b, StandardCharsets.UTF_8);

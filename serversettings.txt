@@ -10,4 +10,9 @@ http-path :: C:\Users\Administrator\Desktop\test6
 http-start
 http-browser-start
 
+******** streaming server settings ****
+chunksize :: 2
+stream-port :: 8899
+
+
 

@@ -10,21 +10,43 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-public class RangeResponseTransmitter {
-    final int MAX_CHUNKSIZE = 0x100_000;
+public class ChunkWiseTransmitter {
+    private int m_chunksize = 0x100_000;
+    private int m_port = 8899; // default
     private File m_video;
-    public static RangeResponseTransmitter instance;
+    private static ChunkWiseTransmitter instance;
 
-    public RangeResponseTransmitter()
+    public void setChunkSize (int n)
     {
-        instance = this;
+        m_chunksize = 0x100_000 * n;
+    }
+
+    public void setPort (int port)
+    {
+        m_port = port;
+    }
+
+    public int getPort()
+    {
+        return m_port;
     }
 
     public void setVideo (String name){
         m_video = new File (name);
     }
 
-    private void handeRequest (NIOSocket socket, Http http) throws IOException {
+    public static ChunkWiseTransmitter getInstance()
+    {
+        if (instance == null)
+            instance = new ChunkWiseTransmitter();
+        return instance;
+    }
+
+    private ChunkWiseTransmitter()
+    {
+    }
+
+    private void handleRequest(NIOSocket socket, Http http) {
         FileInputStream fileStream;
         try {
             fileStream = new FileInputStream(m_video);
@@ -36,12 +58,12 @@ public class RangeResponseTransmitter {
         String range = http.getHeaderValue("range");
         if (range == null) {
             start = 0;
-            end = MAX_CHUNKSIZE;
+            end = m_chunksize;
         }
         else {
             RangeCalculator r = new RangeCalculator(range, (int)m_video.length());
             start = r.start;
-            end = Math.min (start + MAX_CHUNKSIZE, r.end);
+            end = Math.min (start + m_chunksize, r.end);
         }
         int contentLen = ((start == end) ? 0 : (end - start + 1));
         String contentRange = ""+start + "-" + end + "/" + m_video.length();
@@ -64,10 +86,10 @@ public class RangeResponseTransmitter {
         System.out.println("TX: "+data.length);
     }
 
-    public void startServer (int port) {
+    public void startServer() {
         try {
             NIOService serv2 = new NIOService();
-            NIOServerSocket socket = serv2.openServerSocket (port, 100);
+            NIOServerSocket socket = serv2.openServerSocket (m_port, 100);
 
             socket.listen(new ServerSocketObserverAdapter() {
                 public void newConnection (NIOSocket nioSocket) {
@@ -75,7 +97,7 @@ public class RangeResponseTransmitter {
                         public void packetReceived (NIOSocket socket, byte[] packet) {
                             Http http = new Http(packet);
                             try {
-                                handeRequest(socket, http);
+                                handleRequest(socket, http);
                             } catch (Exception e) {
                                 System.out.println("RRT failed: "+e);
                             }

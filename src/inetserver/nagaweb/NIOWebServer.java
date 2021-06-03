@@ -21,7 +21,6 @@ SOFTWARE.
 */
 package inetserver.nagaweb;
 
-import inetserver.videostream.RangeResponseTransmitter;
 import misc.Http;
 import naga.*;
 

@@ -5,7 +5,7 @@ package applications;/*
  */
 
 import inetserver.nagaweb.NIOWebServer;
-import inetserver.videostream.RangeResponseTransmitter;
+import inetserver.videostream.ChunkWiseTransmitter;
 import misc.OnOffButton;
 
 import javax.swing.*;
@@ -144,10 +144,8 @@ public class WebServerGUI extends JPanel {
 
             // Start video stream server
             new Thread(() -> {
-                RangeResponseTransmitter rrt = new RangeResponseTransmitter();
-//                rrt.setVideo("C:\\Users\\Administrator\\Desktop\\test6");
-//                rrt.setVideo("c:\\input.mp4");
-                rrt.startServer(9988);
+                ChunkWiseTransmitter rrt = ChunkWiseTransmitter.getInstance();
+                rrt.startServer();
                 rrt.setVideo("");
             }).start();
         }

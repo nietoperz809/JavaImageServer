@@ -1,6 +1,7 @@
 import applications.ConfigGUI;
 import applications.FtpServerGUI;
 import applications.WebServerGUI;
+import inetserver.videostream.ChunkWiseTransmitter;
 import misc.ConfigFile;
 import misc.Tools;
 
@@ -28,6 +29,10 @@ class MainFrame
         configFile.setAction("http-path", strings -> web.setPathTxt(strings[0]));
         configFile.setAction("http-start", strings -> web.button.simulateClick());
         configFile.setAction("http-browser-start", strings -> web.browser_startflag = true);
+        configFile.setAction("chunksize", strings
+                -> ChunkWiseTransmitter.getInstance().setChunkSize(Integer.parseInt(strings[0])));
+        configFile.setAction("stream-port", strings
+                -> ChunkWiseTransmitter.getInstance().setPort(Integer.parseInt(strings[0])));
         try
         {
             configFile.execute();
@@ -85,11 +90,6 @@ class MainFrame
 
     public static void main (String[] args)
     {
-//        Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("JPEG");
-//        while (readers.hasNext()) {
-//            System.out.println("reader: " + readers.next());
-//        }
-
         SwingUtilities.invokeLater (MainFrame::start);
     }
 }
