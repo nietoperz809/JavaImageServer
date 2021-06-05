@@ -139,7 +139,7 @@ public class NIOWebServerClient {
         sb2.append("Here: ").append(path).append("  --  \r\n");
         sb2.append("Objects: ").append(totalsize).append(" --- Omitted: ").append(totalsize - filtsize);
         Path pp = Paths.get(path).getParent();
-        if (pp != null || !path.equals(m_basePath)) {
+        if (pp != null && !path.equals(m_basePath)) {
             String u8 = UrlEncodeUTF8.transform(pp.toString());
             sb2.append(" --- <a href=\"").append(u8).append("\">");
             sb2.append("*BACK*").append("</a>");
