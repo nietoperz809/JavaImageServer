@@ -10,7 +10,6 @@ import transform.UrlEncodeUTF8;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -159,6 +158,11 @@ public class NIOWebServerClient {
                 dirs.add(p);
             } else if (isImage(name)) {
                 imageCtr++;
+                try {
+                    thumbs.getImageThumbnail(fil);
+                } catch (Exception e) {
+                    System.out.println("itn failed" + e);
+                }
                 sb.append(createImagePageLink(idx, p));
             } else if (isVideo(name)) {
                 vidCtr++;
@@ -209,7 +213,7 @@ public class NIOWebServerClient {
      * @param w   Socket writer
      * @param len File length
      */
-    private void mp4Head(NIOSocket w, long len, String filename) {
+    private void dataFileHead(NIOSocket w, long len, String filename) {
         if (len <= 0) {
             return;
         }
@@ -289,18 +293,18 @@ public class NIOWebServerClient {
         fi.close();
     }
 
-    private void sendMedia(NIOSocket out, String fname) throws Exception {
+    private void sendDataFile(NIOSocket out, String fname) throws Exception {
         File f = new File(fname);
-        mp4Head(out, f.length(), fname);
+        dataFileHead(out, f.length(), fname);
         transmitFileInChunks(out, f);
     }
-
-    private void sendZip(NIOSocket out, String fname) throws IOException {
-        File f = new File(fname);
-        byte[] b = Files.readAllBytes(f.toPath());
-        mp4Head(out, f.length(), fname);
-        out.write(b);
-    }
+//
+//    private void sendDataFile(NIOSocket out, String fname) throws IOException {
+//        File f = new File(fname);
+//        byte[] b = Files.readAllBytes(f.toPath());
+//        dataFileHead(out, f.length(), fname);
+//        out.write(b);
+//    }
 
     private void sendHtmlOverHttp(String content, NIOSocket out) throws Exception {
         String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>"
@@ -395,11 +399,11 @@ public class NIOWebServerClient {
                 sendJpegSmall(outputSocket, fileList.get(idx));
             }
         } else if (isZip(resource)) {
-            sendZip(outputSocket, resource);
+            sendDataFile(outputSocket, resource);
         } else if (isVideo(resource)) {
-            sendMedia(outputSocket, resource);
+            sendDataFile(outputSocket, resource);
         } else if (isAudio(resource)) {
-            sendMedia(outputSocket, resource);
+            sendDataFile(outputSocket, resource);
         } else if (isText(resource)) {
             String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile(resource) + "</html>";
             outputSocket.write(s.getBytes(StandardCharsets.UTF_8));
@@ -418,7 +422,10 @@ public class NIOWebServerClient {
             if (resource.isEmpty()) {
                 resource = imagePath;
             }
-            sendGalleryPage(outputSocket, resource);
+            if (new File(resource).isDirectory())
+                sendGalleryPage(outputSocket, resource);
+            else
+                sendDataFile(outputSocket, resource);
         }
     }
 }
