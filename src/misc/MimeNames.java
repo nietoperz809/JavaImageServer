@@ -16,6 +16,12 @@ public class MimeNames {
         map.put(".txt", "text/plain");
         map.put(".wav", "audio/x-wav");
         map.put(".webm", "video/webm");
+        map.put(".avi", "video/x-msvideo");
+        map.put(".wmv", "video/x-ms-wmv");
+        map.put(".mov", "video/quicktime");
+        map.put(".3gp", "video/3gpp");
+        map.put(".flv", "video/x-flv");
+        map.put(".mkv", "video/x-matroska");
     }
 
     public static String getMime (String type) {
