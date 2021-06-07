@@ -18,7 +18,7 @@ public class ThumbManager {
             Files.createDirectories(Paths.get(thumbsDir));
             folderExists = true;
         } catch (Exception e) {
-            System.out.println("failed to create thumbs dir: "+e);
+            Dbg.print("failed to create thumbs dir: "+e);
         }
     }
 
@@ -60,7 +60,7 @@ public class ThumbManager {
             try {
                 Files.write(p, data);
             } catch (IOException e) {
-                System.out.println("cannot store thumb: " + e);
+                Dbg.print("cannot store thumb: " + e);
             }
         }
     }

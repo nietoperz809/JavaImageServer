@@ -102,6 +102,7 @@ public class Tools
 
     public static boolean isVideo(String in) {
         return hasExtension(in, ".mp4", ".mkv", ".webm", ".ogv", ".3gp");
+        //return hasExtension(in, ".mp4", ".mkv", ".webm", ".ogv", ".3gp", ".avi", ".wmv");
     }
 
     public static boolean isAudio(String in) {

@@ -1,5 +1,6 @@
 package inetserver.videostream;
 
+import misc.Dbg;
 import misc.Http;
 import misc.MimeNames;
 import misc.Tools;
@@ -10,11 +11,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-public class ChunkWiseTransmitter {
+public class Http206Transmitter {
     private int m_chunksize = 0x100_000;
     private int m_port = 8899; // default
     private File m_video;
-    private static ChunkWiseTransmitter instance;
+    private static Http206Transmitter instance;
 
     public void setChunkSize (int n)
     {
@@ -33,16 +34,17 @@ public class ChunkWiseTransmitter {
 
     public void setVideo (String name){
         m_video = new File (name);
+        Dbg.print("Vid to play: "+name);
     }
 
-    public static ChunkWiseTransmitter getInstance()
+    public static Http206Transmitter getInstance()
     {
         if (instance == null)
-            instance = new ChunkWiseTransmitter();
+            instance = new Http206Transmitter();
         return instance;
     }
 
-    private ChunkWiseTransmitter()
+    private Http206Transmitter()
     {
     }
 
@@ -51,14 +53,14 @@ public class ChunkWiseTransmitter {
         try {
             fileStream = new FileInputStream(m_video);
         } catch (FileNotFoundException e) {
-            System.out.println("Cant open:"+e);
+            Dbg.print("Cant open:"+e);
             return;
         }
         int start, end;
         String range = http.getHeaderValue("range");
         if (range == null) {
             start = 0;
-            end = m_chunksize;
+            end = (int) Math.min (m_chunksize, m_video.length());
         }
         else {
             RangeCalculator r = new RangeCalculator(range, (int)m_video.length());
@@ -80,10 +82,10 @@ public class ChunkWiseTransmitter {
             fileStream.read(data);
             fileStream.close();
         } catch (IOException e) {
-            System.out.println("file read fail: "+e);
+            Dbg.print("file read fail: "+e);
         }
         socket.write(data); // Send it out!
-        System.out.println("TX: "+data.length);
+        Dbg.print("TX: "+data.length);
     }
 
     public void startServer() {
@@ -99,7 +101,7 @@ public class ChunkWiseTransmitter {
                             try {
                                 handleRequest(socket, http);
                             } catch (Exception e) {
-                                System.out.println("RRT failed: "+e);
+                                Dbg.print("RRT failed: "+e);
                             }
                             socket.closeAfterWrite();
                         }

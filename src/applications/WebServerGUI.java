@@ -5,7 +5,8 @@ package applications;/*
  */
 
 import inetserver.nagaweb.NIOWebServer;
-import inetserver.videostream.ChunkWiseTransmitter;
+import inetserver.videostream.Http206Transmitter;
+import misc.Dbg;
 import misc.OnOffButton;
 
 import javax.swing.*;
@@ -135,7 +136,7 @@ public class WebServerGUI extends JPanel {
                     try {
                         Desktop.getDesktop().browse(new URI(url));
                     } catch (Exception e) {
-                        System.out.println(e);
+                        Dbg.print(e);
                     }
                 }
                 //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -144,7 +145,7 @@ public class WebServerGUI extends JPanel {
 
             // Start video stream server
             new Thread(() -> {
-                ChunkWiseTransmitter rrt = ChunkWiseTransmitter.getInstance();
+                Http206Transmitter rrt = Http206Transmitter.getInstance();
                 rrt.startServer();
                 rrt.setVideo("");
             }).start();

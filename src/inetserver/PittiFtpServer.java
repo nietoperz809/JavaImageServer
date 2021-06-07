@@ -8,6 +8,7 @@ package inetserver;
 import minimalftp.FTPServer;
 import minimalftp.impl.NativeFileSystem;
 import minimalftp.impl.NoOpAuthenticator;
+import misc.Dbg;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class PittiFtpServer
             server.close();
             server = null;
         } catch (IOException e) {
-            System.out.println("can't stop ftp: "+e);
+            Dbg.print("can't stop ftp: "+e);
         }
     }
 
@@ -60,7 +61,7 @@ public class PittiFtpServer
             server = new FTPServer(auth);
             server.listenSync(port);
         } catch (IOException e) {
-            System.out.println("can't start ftp: "+e);
+            Dbg.print("can't start ftp: "+e);
         }
     }
 }

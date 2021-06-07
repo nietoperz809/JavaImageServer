@@ -1,11 +1,12 @@
 package misc;
 
-import java.io.File;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static misc.Tools.getPathOfClass;
@@ -35,7 +36,6 @@ public class ConfigFile
     private final String _filename;
     private String _filepath;
     private final HashMap<String, Consumer<String[]>> _map = new HashMap<>();
-
     /**
      * Constructor
      * @param fileName name of config file
@@ -70,6 +70,7 @@ public class ConfigFile
             String[] args = new String[splits.length-1];
             System.arraycopy(splits, 1, args, 0, args.length);
             func.accept(args);
+            Dbg.print(Arrays.toString(splits));
         }
     }
 
@@ -79,11 +80,11 @@ public class ConfigFile
     public void execute() throws Exception {
         Stream<String> stream;
         try {
-            System.out.println("trying "+ _filepath);
+            Dbg.print("trying "+ _filepath);
             stream = Files.lines(Paths.get(_filepath));
         } catch (Exception e) {
             System.out.print("first chance failed ... ");
-            System.out.println("trying "+_filename);
+            Dbg.print("trying "+_filename);
             stream = Files.lines(Paths.get(_filename));
             _filepath = _filename;
         }

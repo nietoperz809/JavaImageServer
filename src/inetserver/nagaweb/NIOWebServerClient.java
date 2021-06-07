@@ -1,7 +1,8 @@
 package inetserver.nagaweb;
 
 
-import inetserver.videostream.ChunkWiseTransmitter;
+import inetserver.videostream.Http206Transmitter;
+import misc.Dbg;
 import misc.Http;
 import misc.ThumbManager;
 import misc.Tools;
@@ -161,7 +162,7 @@ public class NIOWebServerClient {
                 try {
                     thumbs.getImageThumbnail(fil);
                 } catch (Exception e) {
-                    System.out.println("itn failed" + e);
+                    Dbg.print("itn failed" + e);
                 }
                 sb.append(createImagePageLink(idx, p));
             } else if (isVideo(name)) {
@@ -169,7 +170,7 @@ public class NIOWebServerClient {
                 try {
                     thumbs.getVideoThumbnail(fil);
                 } catch (Exception e) {
-                    System.out.println("vtn failed" + e);
+                    Dbg.print("vtn failed" + e);
                 }
                 sb.append(createVideoPageLink(idx, p));
             } else if (isAudio(name)) {
@@ -288,7 +289,7 @@ public class NIOWebServerClient {
             System.gc ();
             System.runFinalization ();
             total += amount;
-            System.out.println("Chunked " + Tools.humanReadableByteCount(total));
+            Dbg.print("Chunked " + Tools.humanReadableByteCount(total));
         }
         fi.close();
     }
@@ -298,13 +299,6 @@ public class NIOWebServerClient {
         dataFileHead(out, f.length(), fname);
         transmitFileInChunks(out, f);
     }
-//
-//    private void sendDataFile(NIOSocket out, String fname) throws IOException {
-//        File f = new File(fname);
-//        byte[] b = Files.readAllBytes(f.toPath());
-//        dataFileHead(out, f.length(), fname);
-//        out.write(b);
-//    }
 
     private void sendHtmlOverHttp(String content, NIOSocket out) throws Exception {
         String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>"
@@ -346,11 +340,12 @@ public class NIOWebServerClient {
             if (isVideo(current.getName())) {
                 InetAddress inetAddress = InetAddress.getLocalHost();
                 String vidserv = "http://"+inetAddress.getHostAddress()+":" +
-                        ChunkWiseTransmitter.getInstance().getPort(); // server
+                        Http206Transmitter.getInstance().getPort(); // server
                 String vid =current.getAbsolutePath(); // video
-                ChunkWiseTransmitter.getInstance().setVideo(vid);
+                Http206Transmitter.getInstance().setVideo(vid);
                 body = body + "- Vid" + headline +
-                        "<video controls id=\"video\" src=\""+vidserv+"\" autoplay=\"autoplay\" />";
+                        "<video width=\"100%\" controls id=\"video\" src=\""+vidserv+"\" autoplay=\"autoplay\" />";
+                // "<iframe src=\""+vidserv+"\"></iframe>";
             } else {
                 String img = BIGIMAGE + path.substring(path.indexOf("?img=") + 5) + NUMSEP + pathHash + ".jpg";
                 body = body + "- Img" + headline +

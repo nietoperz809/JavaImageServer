@@ -1,8 +1,9 @@
 import applications.ConfigGUI;
 import applications.FtpServerGUI;
 import applications.WebServerGUI;
-import inetserver.videostream.ChunkWiseTransmitter;
+import inetserver.videostream.Http206Transmitter;
 import misc.ConfigFile;
+import misc.Dbg;
 import misc.Tools;
 
 import javax.swing.*;
@@ -30,16 +31,16 @@ class MainFrame
         configFile.setAction("http-start", strings -> web.button.simulateClick());
         configFile.setAction("http-browser-start", strings -> web.browser_startflag = true);
         configFile.setAction("chunksize", strings
-                -> ChunkWiseTransmitter.getInstance().setChunkSize(Integer.parseInt(strings[0])));
+                -> Http206Transmitter.getInstance().setChunkSize(Integer.parseInt(strings[0])));
         configFile.setAction("stream-port", strings
-                -> ChunkWiseTransmitter.getInstance().setPort(Integer.parseInt(strings[0])));
+                -> Http206Transmitter.getInstance().setPort(Integer.parseInt(strings[0])));
         try
         {
             configFile.execute();
         }
         catch (Exception e)
         {
-            System.out.println("CFG file read error");
+            Dbg.print("CFG file read error");
         }
     }
 

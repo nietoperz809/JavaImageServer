@@ -21,6 +21,7 @@ SOFTWARE.
 */
 package inetserver.nagaweb;
 
+import misc.Dbg;
 import misc.Http;
 import naga.*;
 
@@ -53,20 +54,20 @@ public class NIOWebServer {
 
         socket.listen(new ServerSocketObserverAdapter() {
             public void newConnection (NIOSocket nioSocket) {
-                System.out.println("Client " + nioSocket.getIp() + " connected.");
+                Dbg.print("Client " + nioSocket.getIp() + " connected.");
                 nioSocket.listen(new SocketObserverAdapter() {
                     public void packetReceived (NIOSocket socket, byte[] packet) {
                         Http http = new Http(packet);
                         try {
                             client.handleRequest(basePath, http, socket);
                         } catch (Exception e) {
-                            System.out.println("WS client fail: " + e);
+                            Dbg.print("WS client fail: " + e);
                         }
                         socket.closeAfterWrite();
                     }
 
                     public void connectionBroken (NIOSocket nioSocket, Exception exception) {
-                        System.out.println("Client " + nioSocket.getIp() + " disconnected.");
+                        Dbg.print("Client " + nioSocket.getIp() + " disconnected.");
                     }
                 });
             }
