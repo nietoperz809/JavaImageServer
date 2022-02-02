@@ -1,12 +1,11 @@
 *** set ftp params and start ftp server ***
 ftp-port :: 21
-ftp-path :: C:\Users\Administrator\Desktop\fisk\main
+ftp-path :: C:\Users\Administrator\Desktop\fisk
 * ftp-start
 
 *** set http params and start web server ***
 http-port :: 80
-* http-path :: C:\Users\Administrator\Desktop\test7
-http-path :: C:\
+http-path :: C:\Users\Administrator\Desktop\pr0n
 http-start
 http-browser-start
 

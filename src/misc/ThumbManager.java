@@ -2,6 +2,7 @@ package misc;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +18,19 @@ public class ThumbManager {
         try {
             Files.createDirectories(Paths.get(thumbsDir));
             folderExists = true;
+
+//            (new Thread (() -> {
+//                File[] files = new File(basepath).listFiles ();
+//                for (File f : files) {
+//                    if (f.isDirectory ())
+//                        continue;
+//                    if (Tools.isImage (f.getName ())) {
+//                        createIfNotExists (f);
+//                    }
+//                    //System.out.println (f.getName ());
+//                }
+//            })).start();
+
         } catch (Exception e) {
             Dbg.print("failed to create thumbs dir: "+e);
         }
@@ -39,6 +53,20 @@ public class ThumbManager {
             saveThumb(bytes, name);
         }
         return bytes;
+    }
+
+    public void createIfNotExists (File f) {
+        String name = thumbsDir+File.separator+f.getName()+".jpg";
+        if (!new File(name).exists ()) {
+            // System.out.println (name);
+            try {
+                byte[] bytes = Tools.reduceImg(f, 100);
+                saveThumb(bytes, f.getName());
+                bytes = null;
+            } catch (Exception e) {
+                e.printStackTrace ();
+            }
+        }
     }
 
     private byte[] loadThumb (String name)

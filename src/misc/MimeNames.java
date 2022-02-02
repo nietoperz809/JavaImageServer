@@ -22,6 +22,9 @@ public class MimeNames {
         map.put(".3gp", "video/3gpp");
         map.put(".flv", "video/x-flv");
         map.put(".mkv", "video/x-matroska");
+        map.put(".asf", "video/x-ms-asf");
+        map.put(".swf", "application/x-shockwave-flash");
+        map.put(".fla", "audio/flac");
     }
 
     public static String getMime (String type) {

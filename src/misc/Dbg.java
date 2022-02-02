@@ -2,17 +2,13 @@ package misc;
 
 public class Dbg {
     private static boolean enabled = true;
+    private static long t0 = System.currentTimeMillis();
 
-//    public static void print (String in)
-//    {
-//        if (enabled)
-//            System.out.println(in);
-//    }
-
-    public static void print (Object in)
-    {
-        if (enabled)
-            System.out.println(in);
+    public static void print (Object in) {
+        if (enabled) {
+            long t = (System.currentTimeMillis()-t0)/1000;
+            System.out.println(t+": "+in);
+        }
     }
 
 }

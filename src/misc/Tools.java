@@ -28,7 +28,7 @@ public class Tools
         return new BufferedInputStream (Objects.requireNonNull (is));
     }
 
-    public static byte[] gatResourceAsArray(String name)
+    public static byte[] getResourceAsArray (String name)
     {
         InputStream in = getResourceAsStream(name);
         try {
@@ -58,8 +58,8 @@ public class Tools
      */
     public static byte[] reduceImg (File path, int xy) throws Exception
     {
-        BufferedImage image = loadImage(path);
-        BufferedImage image2 = resizeImage(image, xy, xy);
+        System.out.println ("reduce: "+path.getName ());
+        BufferedImage image2 = resizeImage(loadImage(path), xy, xy);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(image2, "jpg", os);
         return os.toByteArray();
@@ -125,13 +125,14 @@ public class Tools
      * @param height        Height
      * @return new Image
      */
-    private static BufferedImage resizeImage (Image originalImage, int width, int height)
+    private static BufferedImage resizeImage (BufferedImage originalImage, int width, int height)
     {
         if (originalImage == null)
         {
             return null;
         }
         BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        //BufferedImage resizedImage = new BufferedImage(width, height, originalImage.getType ());
         Graphics2D g = resizedImage.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);

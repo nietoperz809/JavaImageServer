@@ -21,6 +21,7 @@ SOFTWARE.
 */
 package naga;
 
+import misc.Dbg;
 import naga.packetreader.RawPacketReader;
 
 import java.io.IOException;
@@ -108,7 +109,7 @@ class SocketChannelResponder extends ChannelResponder implements NIOSocket
 
 	public boolean println (String in)
 	{
-		//System.out.println(in);
+		Dbg.print(in);
 		in = in + "\r\n";
 		return write(in.getBytes(StandardCharsets.UTF_8), null);
 	}

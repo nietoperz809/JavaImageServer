@@ -5,7 +5,7 @@ package applications;/*
  */
 
 import inetserver.nagaweb.NIOWebServer;
-import inetserver.videostream.Http206Transmitter;
+import inetserver.nagaweb.videostream.Http206Transmitter;
 import misc.Dbg;
 import misc.OnOffButton;
 

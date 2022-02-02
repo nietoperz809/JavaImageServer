@@ -1,7 +1,7 @@
 import applications.ConfigGUI;
 import applications.FtpServerGUI;
 import applications.WebServerGUI;
-import inetserver.videostream.Http206Transmitter;
+import inetserver.nagaweb.videostream.Http206Transmitter;
 import misc.ConfigFile;
 import misc.Dbg;
 import misc.Tools;
