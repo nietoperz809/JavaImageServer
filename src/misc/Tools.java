@@ -58,7 +58,6 @@ public class Tools
      */
     public static byte[] reduceImg (File path, int xy) throws Exception
     {
-        System.out.println ("reduce: "+path.getName ());
         BufferedImage image2 = resizeImage(loadImage(path), xy, xy);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(image2, "jpg", os);

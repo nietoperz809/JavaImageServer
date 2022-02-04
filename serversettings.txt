@@ -1,13 +1,13 @@
 *** set ftp params and start ftp server ***
 ftp-port :: 21
-ftp-path :: C:\Users\Administrator\Desktop\fisk
+ftp-path :: C:\Users\Administrator\Desktop\
 * ftp-start
 
 *** set http params and start web server ***
 http-port :: 80
 http-path :: C:\Users\Administrator\Desktop\pr0n
 http-start
-http-browser-start
+* http-browser-start
 
 ******** streaming server settings ****
 chunksize :: 2

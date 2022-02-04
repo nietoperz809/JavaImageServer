@@ -86,9 +86,16 @@ public class Http206Transmitter {
         Dbg.print("TX: "+data.length);
     }
 
+    NIOService serv2;
+
+    public void halt() {
+        if (serv2 != null)
+            serv2.close ();
+    }
+
     public void startServer() {
         try {
-            NIOService serv2 = new NIOService();
+            serv2 = new NIOService();
             NIOServerSocket socket = serv2.openServerSocket (m_port, 100);
 
             socket.listen(new ServerSocketObserverAdapter() {

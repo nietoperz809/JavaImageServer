@@ -2,66 +2,71 @@ package misc;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class ThumbManager {
-    private final String thumbsDir;
     public static final String DNAME = "thumbs";
+    private final String thumbsDir;
     private boolean folderExists = false;
+    private ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool (10);
 
-    public ThumbManager (String basepath)
-    {
+    public ThumbManager (String basepath) {
+        pool.shutdown ();
+        pool.shutdownNow ();
+        pool = (ThreadPoolExecutor) Executors.newFixedThreadPool (10);
         thumbsDir = basepath + File.separator + DNAME;
         try {
-            Files.createDirectories(Paths.get(thumbsDir));
+            Files.createDirectories (Paths.get (thumbsDir));
             folderExists = true;
-
-//            (new Thread (() -> {
-//                File[] files = new File(basepath).listFiles ();
-//                for (File f : files) {
-//                    if (f.isDirectory ())
-//                        continue;
-//                    if (Tools.isImage (f.getName ())) {
-//                        createIfNotExists (f);
-//                    }
-//                    //System.out.println (f.getName ());
-//                }
-//            })).start();
+            System.out.println ("Thumb builder start: " + basepath);
+            File[] files = new File (basepath).listFiles ();
+            for (File f : files) {
+                if (f.isDirectory ())
+                    continue;
+                if (!Tools.isImage (f.getName ()))
+                    continue;
+                pool.execute (() -> {
+                    createIfNotExists (f);
+                    System.out.println (Thread.currentThread ().getName ()+ " end!");
+                });
+            }
+            System.out.println ("Thumb builder done: " + basepath);
 
         } catch (Exception e) {
-            Dbg.print("failed to create thumbs dir: "+e);
+            Dbg.print ("failed to create thumbs dir: " + e);
         }
     }
 
-    public byte[] getImageThumbnail(File f) throws Exception {
-        byte[] bytes = loadThumb(f.getName());
+    public byte[] getImageThumbnail (File f) throws Exception {
+        byte[] bytes = loadThumb (f.getName ());
         if (bytes == null) {
-            bytes = Tools.reduceImg(f, 100);
-            saveThumb(bytes, f.getName());
+            bytes = Tools.reduceImg (f, 100);
+            saveThumb (bytes, f.getName ());
         }
         return bytes;
     }
 
-    public byte[] getVideoThumbnail(File f) throws Exception {
-        String name = f.getName()+".jpg";
-        byte[] bytes = loadThumb(name);
+    public byte[] getVideoThumbnail (File f) throws Exception {
+        String name = f.getName () + ".jpg";
+        byte[] bytes = loadThumb (name);
         if (bytes == null) {
-            bytes = VideoThumbCreator.makeSnapshot(f.getAbsolutePath(), 1000, 100, 100);
-            saveThumb(bytes, name);
+            bytes = VideoThumbCreator.makeSnapshot (f.getAbsolutePath (), 1000, 100, 100);
+            saveThumb (bytes, name);
         }
         return bytes;
     }
 
     public void createIfNotExists (File f) {
-        String name = thumbsDir+File.separator+f.getName()+".jpg";
-        if (!new File(name).exists ()) {
-            // System.out.println (name);
+        String name = thumbsDir + File.separator + f.getName ();
+        if (!new File (name).exists ()) {
+            System.out.println (Thread.currentThread ().getName ()+" loading " + name);
             try {
-                byte[] bytes = Tools.reduceImg(f, 100);
-                saveThumb(bytes, f.getName());
+                byte[] bytes = Tools.reduceImg (f, 100);
+                saveThumb (bytes, f.getName ());
                 bytes = null;
             } catch (Exception e) {
                 e.printStackTrace ();
@@ -69,26 +74,24 @@ public class ThumbManager {
         }
     }
 
-    private byte[] loadThumb (String name)
-    {
+    private byte[] loadThumb (String name) {
         if (!folderExists)
             return null;
-        Path p = Paths.get(thumbsDir+File.separator+name);
+        Path p = Paths.get (thumbsDir + File.separator + name);
         try {
-            return Files.readAllBytes(p);
+            return Files.readAllBytes (p);
         } catch (IOException e) {
             return null;
         }
     }
 
-    private void saveThumb (byte[] data, String name)
-    {
+    private void saveThumb (byte[] data, String name) {
         if (folderExists) {
-            Path p = Paths.get(thumbsDir + File.separator + name);
+            Path p = Paths.get (thumbsDir + File.separator + name);
             try {
-                Files.write(p, data);
+                Files.write (p, data);
             } catch (IOException e) {
-                Dbg.print("cannot store thumb: " + e);
+                Dbg.print ("cannot store thumb: " + e);
             }
         }
     }

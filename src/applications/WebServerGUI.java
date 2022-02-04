@@ -23,6 +23,7 @@ public class WebServerGUI extends JPanel {
     private static final long serialVersionUID = 1L;
     public boolean browser_startflag;
     private volatile NIOWebServer sockserver = null;
+    Http206Transmitter rrt = null;
 
     /**
      * Constructor: creates new form WebServerGUI
@@ -145,7 +146,7 @@ public class WebServerGUI extends JPanel {
 
             // Start video stream server
             new Thread(() -> {
-                Http206Transmitter rrt = Http206Transmitter.getInstance();
+                rrt = Http206Transmitter.getInstance();
                 rrt.startServer();
                 rrt.setVideo("");
             }).start();
@@ -156,6 +157,10 @@ public class WebServerGUI extends JPanel {
         if (sockserver != null) {
             sockserver.halt();
             sockserver = null;
+        }
+        if (rrt != null) {
+            rrt.halt ();
+            rrt = null;
         }
     }
 
