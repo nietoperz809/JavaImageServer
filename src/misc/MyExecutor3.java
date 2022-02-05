@@ -2,41 +2,40 @@ package misc;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-public class MyExecutor3 extends ThreadGroup {
-    private ArrayBlockingQueue<Runnable> workList = new ArrayBlockingQueue<> (1000);
-    private Runnable proc = () -> {
-        try {
-            while (true) {
-                Runnable r = workList.take ();
-                r.run ();
-                Thread.sleep (100);
-            }
-        } catch (Exception e) {
-            return;
-        }
-    };
-
-    public synchronized void execute (Runnable r) {
-        workList.add (r);
-    }
+public class MyExecutor3 {
+    private final ArrayBlockingQueue<Runnable> workList = new ArrayBlockingQueue<> (1000);
+    private final ThreadGroup tg = new ThreadGroup("TG-executor.MyExecutor3");
 
     public MyExecutor3 (int count) {
-        super ("TG-MyExecutor2");
+        Runnable proc = () -> {
+            try {
+                while (true) {
+                    Runnable r = workList.take ();
+                    r.run ();
+                    Thread.yield ();
+                }
+            } catch (Exception e) {
+                System.out.println ("break");
+            }
+        };
         for (int s = 0; s < count; s++) {
-            new Thread (this, proc).start();
+            new Thread (tg, proc, "Ex3:"+s).start ();
+        }
+        tg.setDaemon (true);
+    }
+
+    public void dispose() {
+        tg.interrupt ();
+        workList.clear();
+        while (tg.activeCount () != 0) {
+        workList.offer (() -> {
+            int a = 1/0;
+            });
         }
     }
 
-    ///////////////////////////////////////////////////////
-    public static void main (String[] args) throws InterruptedException {
-        MyExecutor3 ex = new MyExecutor3 (10);
-
-        ex.execute (() -> {
-            System.out.println ("hello");
-        });
-
-        Thread.sleep (2000);
-
-        ex.interrupt ();
+    public void execute (Runnable r) {
+        workList.add (r);
     }
 }
+

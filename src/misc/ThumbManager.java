@@ -5,19 +5,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class ThumbManager {
     public static final String DNAME = "thumbs";
     private final String thumbsDir;
     private boolean folderExists = false;
-    private ThreadPoolExecutor pool = (ThreadPoolExecutor) Executors.newFixedThreadPool (10);
+    private static MyExecutor3 pool = new MyExecutor3 (10);
 
     public ThumbManager (String basepath) {
-        pool.shutdown ();
-        pool.shutdownNow ();
-        pool = (ThreadPoolExecutor) Executors.newFixedThreadPool (10);
         thumbsDir = basepath + File.separator + DNAME;
         try {
             Files.createDirectories (Paths.get (thumbsDir));
