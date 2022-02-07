@@ -15,8 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
@@ -42,7 +40,7 @@ public class NIOWebServerClient {
             "a:visited {\n" +
             "  color: green;\n" +
             "}\n";
-    private int pathHash;
+    private int saltValue;
     private ArrayList<File> fileList;
     private ThumbManager thumbs;
 
@@ -73,7 +71,7 @@ public class NIOWebServerClient {
         return "<a href=\""
                 + "show.html?img=" + idx
                 + "\" target=\"_blank\"><img src=\""
-                + pathHash + NUMSEP + idx + ".jpg"
+                + saltValue + NUMSEP + idx + ".jpg"
                 + "\" title=\"" + path.getFileName ().toString () + "\""
                 + "></a>\r\n";
     }
@@ -82,7 +80,7 @@ public class NIOWebServerClient {
         return "<a href=\""
                 + "show.html?vid=" + idx
                 + "\" target=\"_blank\"><img src=\""
-                + pathHash + NUMSEP + idx + ".jpg"
+                + saltValue + NUMSEP + idx + ".jpg"
                 + "\" title=\"" + path.getFileName ().toString () + "\""
                 + "></a>\r\n";
     }
@@ -113,7 +111,7 @@ public class NIOWebServerClient {
      */
     private String buildGalleryPage (String path) {
         thumbs = new ThumbManager (path);
-        pathHash = path.hashCode ();
+        saltValue = (int) System.currentTimeMillis (); // path.hashCode ();
         StringBuilder sb = new StringBuilder ();
         StringBuilder sb2 = new StringBuilder ();
 
@@ -158,13 +156,6 @@ public class NIOWebServerClient {
                 dirs.add (p);
             } else if (isImage (name)) {
                 imageCtr++;
-                //pool.execute (() -> {
-//                    try {
-//                        thumbs.createIfNotExists (fil);
-//                    } catch (Exception e) {
-//                        Dbg.print ("itn failed" + e);
-//                    }
-                //});
                 sb.append (createImagePageLink (idx, p));
             } else if (isVideo (name)) {
                 vidCtr++;
@@ -300,8 +291,13 @@ public class NIOWebServerClient {
     }
 
     private void sendHtmlOverHttp (String content, NIOSocket out) throws Exception {
-        String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>"
-                + "<meta charset=\"utf-8\"/>"
+        String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>\n"
+                +"<meta Http-Equiv=\"Cache-Control\" Content=\"no-cache\">\n" +
+                "<meta Http-Equiv=\"Pragma\" Content=\"no-cache\">\n" +
+                "<meta Http-Equiv=\"Expires\" Content=\"0\">\n" +
+                "<meta Http-Equiv=\"Pragma-directive: no-cache\">\n" +
+                "<meta Http-Equiv=\"Cache-directive: no-cache\">\n"
+                + "<meta charset=\"utf-8\"/>\n"
                 + "<style>" + mystyle + "</style>"
                 + "</head>\r\n"
                 + "<body>" + content + "</body>"
@@ -346,7 +342,7 @@ public class NIOWebServerClient {
                         "<video width=\"100%\" controls id=\"video\" src=\"" + vidserv + "\" autoplay=\"autoplay\" />";
                 // "<iframe src=\""+vidserv+"\"></iframe>";
             } else {
-                String img = BIGIMAGE + path.substring (path.indexOf ("?img=") + 5) + NUMSEP + pathHash + ".jpg";
+                String img = BIGIMAGE + path.substring (path.indexOf ("?img=") + 5) + NUMSEP + saltValue + ".jpg";
                 body = body + "- Img" + headline +
                         "<img src=\"" + img + "\" style=\"width: 100%;\" />";
             }

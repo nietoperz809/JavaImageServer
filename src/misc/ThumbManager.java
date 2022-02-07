@@ -10,10 +10,11 @@ public class ThumbManager {
     public static final String DNAME = "thumbs";
     private final String thumbsDir;
     private boolean folderExists = false;
-    private static MyExecutor3 pool = new MyExecutor3 (10);
+    private static NPExecutor pool = new NPExecutor (10, 1000);
 
     public ThumbManager (String basepath) {
         thumbsDir = basepath + File.separator + DNAME;
+        pool.cancel ();
         try {
             Files.createDirectories (Paths.get (thumbsDir));
             folderExists = true;
