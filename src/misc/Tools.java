@@ -16,6 +16,8 @@ import java.net.URI;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Administrator
@@ -177,5 +179,19 @@ public class Tools
         if (fp.endsWith(".jar"))
             return fp.substring(0, fp.lastIndexOf(File.separatorChar) + 1);
         return fp + File.separatorChar;
+    }
+
+    public static void runAsync (Runnable r) {
+        CompletableFuture.runAsync (r::run
+        );
+    }
+
+    /**
+     * Check if file is text, not binary
+     * @param in a file name
+     * @return true if it's a text file
+     */
+    public static boolean isText (String in) {
+        return hasExtension (in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 }

@@ -1,6 +1,5 @@
 package inetserver.nagaweb;
 
-
 import inetserver.nagaweb.videostream.Http206Transmitter;
 import misc.*;
 import naga.NIOSocket;
@@ -18,38 +17,27 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
-import static misc.Tools.*;
+import static misc.ThumbManager.DNAME;
+import static org.apache.commons.io.FileUtils.deleteDirectory;
 
 /**
+ * Serves HTTP for this imageserver
  * @author Administrator
  */
 public class NIOWebServerClient {
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
     private final String m_basePath;
-    private final String myscript = "document.onkeydown = checkKey;\n" +
-            "function checkKey(e) {\n" +
-            "    e = e || window.event;\n" +
-            "    if (e.keyCode == '37') prv.click();\n" +
-            "    else if (e.keyCode == '39')  nxt.click();\n" +
-            "}";
-    private final String mystyle = "a:hover {\n" +
-            "  color: white;\n" +
-            "  background-color: black;\n" +
-            "}\n" +
-            "a:visited {\n" +
-            "  color: green;\n" +
-            "}\n";
     private int saltValue;
     private ArrayList<File> fileList;
     private ThumbManager thumbs;
 
+    /**
+     * Constructor
+     * @param basePath Path tha is served
+     */
     public NIOWebServerClient (String basePath) {
         m_basePath = basePath;
-    }
-
-    public static boolean isText (String in) {
-        return hasExtension (in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 
     private void appendLink (ArrayList<Path> list, StringBuilder sb, boolean isDirlist) {
@@ -67,6 +55,12 @@ public class NIOWebServerClient {
         sb.append ("<hr>");
     }
 
+    /**
+     * Create image link for gallery page
+     * @param idx index of file
+     * @param path Path to file
+     * @return the link as String
+     */
     private String createImagePageLink (int idx, Path path) {
         return "<a href=\""
                 + "show.html?img=" + idx
@@ -76,6 +70,12 @@ public class NIOWebServerClient {
                 + "></a>\r\n";
     }
 
+    /**
+     * Create video link for gallery page
+     * @param idx index of file
+     * @param path Path to file
+     * @return the link as String
+     */
     private String createVideoPageLink (int idx, Path path) {
         return "<a href=\""
                 + "show.html?vid=" + idx
@@ -85,6 +85,12 @@ public class NIOWebServerClient {
                 + "></a>\r\n";
     }
 
+    /**
+     * create fwd or bckwd navigation links
+     * @param idx
+     * @param back
+     * @return the link as string
+     */
     private String createNavigationLink (int idx, boolean back) {
         int newIdx = idx;
         do {
@@ -95,7 +101,7 @@ public class NIOWebServerClient {
                 newIdx = 0;
             if (newIdx == idx)  // detect endless loop
                 break;
-        } while (!isImage (fileList.get (newIdx).getName ()));
+        } while (!Tools.isImage (fileList.get (newIdx).getName ()));
         return "<a id=\""
                 + (back ? "prv" : "nxt")
                 + "\" href=\"show.html?img=" + newIdx
@@ -125,7 +131,7 @@ public class NIOWebServerClient {
         int totalsize = fileList.size ();
         fileList = (ArrayList<File>) fileList.stream ()
                 //.filter(p -> p.length() < MAXSIZE)
-                .filter (p -> !p.getName ().endsWith (ThumbManager.DNAME))
+                .filter (p -> !p.getName ().endsWith (DNAME))
                 .collect (Collectors.toList ());
         int filtsize = fileList.size ();
 
@@ -154,10 +160,10 @@ public class NIOWebServerClient {
             String u8 = UrlEncodeUTF8.transform (p.toString ());
             if (fil.isDirectory ()) {
                 dirs.add (p);
-            } else if (isImage (name)) {
+            } else if (Tools.isImage (name)) {
                 imageCtr++;
                 sb.append (createImagePageLink (idx, p));
-            } else if (isVideo (name)) {
+            } else if (Tools.isVideo (name)) {
                 vidCtr++;
                 try {
                     thumbs.getVideoThumbnail (fil);
@@ -165,14 +171,14 @@ public class NIOWebServerClient {
                     Dbg.print ("vtn failed" + e);
                 }
                 sb.append (createVideoPageLink (idx, p));
-            } else if (isAudio (name)) {
+            } else if (Tools.isAudio (name)) {
                 sb.append ("<figure><figcaption>");
                 sb.append (p.getFileName ().toString ());
                 sb.append ("</figcaption><audio controls src=\"");
                 sb.append (u8).append ("\">");
                 sb.append ("HTML5 Audio not supported</audio></figure>");
                 sb.append ("\r\n");
-            } else if (isText (name) || isZip (name)) {
+            } else if (Tools.isText (name) || Tools.isZip (name)) {
                 txtfiles.add (p);
             } else
                 otherfiles.add (p);
@@ -182,6 +188,10 @@ public class NIOWebServerClient {
         appendLink (otherfiles, sb2, false);
         sb2.append (sb);
         sb2.append ("<br>Images: ").append (imageCtr).append ("<br>Videos ").append (vidCtr);
+        sb2.append ("<form action=\"delthumb\">\n" +
+                "<input type=\"hidden\" name=\""+path+"\">" +
+                "    <input type=\"submit\" value=\"Regenerate Thumbs\" />\n" +
+                "</form>");
         return sb2.toString ();
     }
 
@@ -247,7 +257,7 @@ public class NIOWebServerClient {
      */
     private void sendJpegSmall (NIOSocket out, File f) throws Exception {
         byte[] bytes;
-        if (isVideo (f.getName ()))
+        if (Tools.isVideo (f.getName ()))
             bytes = thumbs.getVideoThumbnail (f);
         else
             bytes = thumbs.getImageThumbnail (f);
@@ -272,7 +282,7 @@ public class NIOWebServerClient {
             fi.read (b);
             ret = out.write (b);
             while (!ret) {
-                Thread.sleep (100);
+                Thread.yield();
                 ret = out.write (b);
             }
             b = null;  // GC should catch it;
@@ -291,6 +301,13 @@ public class NIOWebServerClient {
     }
 
     private void sendHtmlOverHttp (String content, NIOSocket out) throws Exception {
+        String mystyle = "a:hover {\n" +
+                "  color: white;\n" +
+                "  background-color: black;\n" +
+                "}\n" +
+                "a:visited {\n" +
+                "  color: green;\n" +
+                "}\n";
         String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>\n"
                 +"<meta Http-Equiv=\"Cache-Control\" Content=\"no-cache\">\n" +
                 "<meta Http-Equiv=\"Pragma\" Content=\"no-cache\">\n" +
@@ -327,12 +344,18 @@ public class NIOWebServerClient {
             body = "<h1>Please reload gallery page</h1>";
         else {
             File current = fileList.get (idx);
+            String myscript = "document.onkeydown = checkKey;\n" +
+                    "function checkKey(e) {\n" +
+                    "    e = e || window.event;\n" +
+                    "    if (e.keyCode == '37') prv.click();\n" +
+                    "    else if (e.keyCode == '39')  nxt.click();\n" +
+                    "}";
             body = "<script>" + myscript + "</script>";
             String headline = ": " + idx + " - " + current.getName () + " - " +
-                    humanReadableByteCount (current.length ()) + " - " +
+                    Tools.humanReadableByteCount (current.length ()) + " - " +
                     createNavigationLink (idx, true) +
                     createNavigationLink (idx, false) + "<hr>";
-            if (isVideo (current.getName ())) {
+            if (Tools.isVideo (current.getName ())) {
                 InetAddress inetAddress = InetAddress.getLocalHost ();
                 String vidserv = "http://" + inetAddress.getHostAddress () + ":" +
                         Http206Transmitter.getInstance ().getPort (); // server
@@ -377,7 +400,13 @@ public class NIOWebServerClient {
      */
     void handleRequest (String imagePath, Http http, NIOSocket outputSocket) throws Exception {
         String resource = UrlEncodeUTF8.retransform (http.getRequestedResource ());
-        if (isImage (resource)) {
+        if (resource.startsWith ("delthumb?")) {
+            String target = resource.substring (9, resource.length ()-1);
+            String thumbsdir = target + File.separator + DNAME;
+            deleteDirectory (new File(thumbsdir));
+            sendGalleryPage (outputSocket, target);
+            //System.out.println ("delthumbs: "+target);
+        } else if (Tools.isImage (resource)) {
             resource = resource.substring (0, resource.lastIndexOf ('.'));
             if (resource.startsWith (BIGIMAGE)) {
                 resource = resource.substring (0, resource.indexOf (NUMSEP));
@@ -388,13 +417,13 @@ public class NIOWebServerClient {
                 int idx = Integer.parseInt (resource);
                 sendJpegSmall (outputSocket, fileList.get (idx));
             }
-        } else if (isZip (resource)) {
+        } else if (Tools.isZip (resource)) {
             sendDataFile (outputSocket, resource);
-        } else if (isVideo (resource)) {
+        } else if (Tools.isVideo (resource)) {
             sendDataFile (outputSocket, resource);
-        } else if (isAudio (resource)) {
+        } else if (Tools.isAudio (resource)) {
             sendDataFile (outputSocket, resource);
-        } else if (isText (resource)) {
+        } else if (Tools.isText (resource)) {
             String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile (resource) + "</html>";
             outputSocket.write (s.getBytes (StandardCharsets.UTF_8));
         } else if (resource.equals ("favicon.ico")) {

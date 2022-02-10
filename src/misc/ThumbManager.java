@@ -11,6 +11,7 @@ public class ThumbManager {
     private final String thumbsDir;
     private boolean folderExists = false;
     private static NPExecutor pool = new NPExecutor (10, 1000);
+    //private static GreenExecutor green = new GreenExecutor (50);
 
     public ThumbManager (String basepath) {
         thumbsDir = basepath + File.separator + DNAME;
@@ -25,6 +26,8 @@ public class ThumbManager {
                     continue;
                 if (!Tools.isImage (f.getName ()))
                     continue;
+                //Tools.runAsync(() -> {
+                //green.execute (() -> {
                 pool.execute (() -> {
                     createIfNotExists (f);
                     System.out.println (Thread.currentThread ().getName ()+ " end!");
