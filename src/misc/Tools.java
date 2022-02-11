@@ -111,7 +111,7 @@ public class Tools
     }
 
     public static boolean isImage(String in) {
-        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp", "gif");
+        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp", "gif", "jfif");
     }
 
     public static boolean isZip(String in) {
