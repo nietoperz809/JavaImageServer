@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/ressource" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
+    <content url="file://$MODULE_DIR$/out/artifacts" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="common-image-3.7.0" level="project" />

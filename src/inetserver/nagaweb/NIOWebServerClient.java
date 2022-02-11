@@ -43,16 +43,22 @@ public class NIOWebServerClient {
     private void appendLink (ArrayList<Path> list, StringBuilder sb, boolean isDirlist) {
         if (list.size () == 0)
             return;
-        if (isDirlist)
+        if (isDirlist) {
             list.sort ((o1, o2) ->
                     o1.getFileName ().toString ().compareToIgnoreCase (o2.getFileName ().toString ()));
-        for (Path p : list) {
-            String u8 = UrlEncodeUTF8.transform (p.toString ());
-            sb.append ("<a href=\"").append (u8).append ("\">");
-            String filename = isDirlist ? "&lt;" + p.getFileName ().toString () + "&gt;" : p.getFileName ().toString ();
-            sb.append (filename).append ("</a>").append ("<br>\r\n");
         }
-        sb.append ("<hr>");
+        sb.append ("<table><tr>");
+        int cnt = 0;
+        for (Path p : list) {
+            cnt++;
+            if (cnt%10 == 0)
+                sb.append("</tr><tr>");
+            String u8 = UrlEncodeUTF8.transform (p.toString ());
+            sb.append ("<td><a href=\"").append (u8).append ("\">");
+            String filename = isDirlist ? p.getFileName ().toString () : p.getFileName ().toString ();
+            sb.append (filename).append ("</a>").append ("</td>\r\n");
+        }
+        sb.append ("</tr></table><hr>");
     }
 
     /**
@@ -307,7 +313,13 @@ public class NIOWebServerClient {
                 "}\n" +
                 "a:visited {\n" +
                 "  color: green;\n" +
-                "}\n";
+                "}\n" +
+                "table, th, td {\n" +
+                "  border: 1px solid black;\n" +
+                "}"+
+                "th, td {\n" +
+                "  background-color: #96D4D4;\n" +
+                "}";
         String http = "HTTP/1.1 200 OK\r\n\r\n <!DOCTYPE html><html lang=\"en\"><head>\n"
                 +"<meta Http-Equiv=\"Cache-Control\" Content=\"no-cache\">\n" +
                 "<meta Http-Equiv=\"Pragma\" Content=\"no-cache\">\n" +
