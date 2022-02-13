@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'/>
+    <style>
+		.zoom {
+			display:inline-block;
+			position: relative;
+		}
+		.center {
+  			display: block;
+  			margin-left: auto;
+  			margin-right: auto;
+  			width: 80%;
+		}
+	</style>
+    <script src='jquery.min.js'></script>
+    <script src='jquery.zoom.js'></script>
+    <script>
+		$(document).ready(function(){
+			$('#ex1').zoom();
+		});
+	</script>
+</head>
+<body>
+<script>
+document.onkeydown = checkKey;
+function checkKey(e) {
+    e = e || window.event;
+    if (e.keyCode == '37') prv.click();
+    else if (e.keyCode == '39')  nxt.click();
+</script>
+@@IMGINFO
+<a id="prv" href="show.html?img=@@PRV" target="_self"><img src="backarrow.ico"></a>
+<a id="nxt" href="show.html?img=@@NXT" target="_self"><img src="fwdarrow.ico"></a>
+<hr>
+<span class='zoom' id='ex1'>
+		<img src='@@THEIMG' class='center'/>
+	</span>
+</body>
+</html>
