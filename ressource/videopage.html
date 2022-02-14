@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <style>a:hover {
+  color: white;
+  background-color: black;
+}
+a:visited {
+  color: green;
+}
+</style>
+</head>
+<body>
+<script>
+document.onkeydown = checkKey;
+function checkKey(e) {
+    e = e || window.event;
+    if (e.keyCode == '37') prv.click();
+    else if (e.keyCode == '39')  nxt.click();
+}
+</script>
+@@VIDINFO
+<a id="prv" href="show.html?img=@@PRV" target="_self"><img src="backarrow.ico"></a>
+<a id="nxt" href="show.html?img=@@NXT" target="_self"><img src="fwdarrow.ico"></a>
+<hr>
+<video width="100%" controls id="video" src="@@VIDSRC" autoplay="autoplay" />
+</body>
+</html>
