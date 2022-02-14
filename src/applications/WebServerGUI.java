@@ -23,7 +23,8 @@ public class WebServerGUI extends JPanel {
     private static final long serialVersionUID = 1L;
     public boolean browser_startflag;
     private volatile NIOWebServer sockserver = null;
-    Http206Transmitter rrt = null;
+    private final Http206Transmitter rrt = Http206Transmitter.getInstance();
+
     private String imgPageStyle = "0";
 
     /**
@@ -149,7 +150,6 @@ public class WebServerGUI extends JPanel {
 
             // Start video stream server
             new Thread(() -> {
-                rrt = Http206Transmitter.getInstance();
                 rrt.startServer();
                 rrt.setVideo("");
             }).start();
@@ -161,10 +161,7 @@ public class WebServerGUI extends JPanel {
             sockserver.halt();
             sockserver = null;
         }
-        if (rrt != null) {
-            rrt.halt ();
-            rrt = null;
-        }
+        rrt.halt ();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
