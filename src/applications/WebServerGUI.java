@@ -24,6 +24,7 @@ public class WebServerGUI extends JPanel {
     public boolean browser_startflag;
     private volatile NIOWebServer sockserver = null;
     Http206Transmitter rrt = null;
+    private String imgPageStyle = "0";
 
     /**
      * Constructor: creates new form WebServerGUI
@@ -111,13 +112,15 @@ public class WebServerGUI extends JPanel {
         //pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public void setPathTxt(String pathTxt) {
+    public void setPathTxt (String pathTxt) {
         this.pathTxt.setText(pathTxt);
     }
-    public void setPortTxt(String portTxt) {
+    public void setPortTxt (String portTxt) {
         this.portTxt.setText(portTxt);
     }
-
+    public void setImagePageStyle (String style) {
+        this.imgPageStyle = style;
+    }
     public void start() {
         if (sockserver == null) {
             try {
@@ -125,7 +128,7 @@ public class WebServerGUI extends JPanel {
                 String path = pathTxt.getText();
                 if (!new File(path).isDirectory())
                     throw new Exception("base dir not exist or inaccessible");
-                sockserver = new NIOWebServer(port, path);
+                sockserver = new NIOWebServer(port, path, imgPageStyle.charAt (0));
             } catch (Exception e) {
                 button.doClick(); // cancel click
                 infoBox (e.toString());

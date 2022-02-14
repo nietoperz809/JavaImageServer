@@ -29,6 +29,7 @@ public class NIOWebServerClient {
     private static final String BIGIMAGE = "*IMG*";
     private static final String NUMSEP = "@";
     private final String m_basePath;
+    private char m_pageStyle = '1';
     private int saltValue;
     private ArrayList<File> fileList;
     private ThumbManager thumbs;
@@ -37,9 +38,11 @@ public class NIOWebServerClient {
      * Constructor
      *
      * @param basePath Path tha is served
+     * @param pageStyle
      */
-    public NIOWebServerClient (String basePath) {
+    public NIOWebServerClient (String basePath, char pageStyle) {
         m_basePath = basePath;
+        m_pageStyle = pageStyle;
     }
 
     private void appendLink (ArrayList<Path> list, StringBuilder sb, boolean isDirlist) {
@@ -366,57 +369,72 @@ public class NIOWebServerClient {
             body = "<h1>Please reload gallery page</h1>";
         else {
             File current = fileList.get (idx);
-            byte[] bt = Tools.getResourceAsArray ("imagepage.html");
-            body = new String (bt);
-            String img = BIGIMAGE + path.substring (path.indexOf ("?img=") + 5) + NUMSEP + saltValue + ".jpg";
             String headline = ": " + idx + " - " + current.getName () + " - " +
                     Tools.humanReadableByteCount (current.length ()) + " - ";
-            String backidx = createNavIndex(idx, true);
-            String fwdidx = createNavIndex(idx, false);
-            body = body.replace ("@@THEIMG", img);
-            body = body.replace ("@@IMGINFO", headline);
-            body = body.replace ("@@PRV", backidx);
-            body = body.replace ("@@NXT", fwdidx);
-
-            sendHtmlOverHttp2 (body, out);
-        }
-    }
-
-    private void sendMediaPage (NIOSocket out, String path) throws Exception {
-        int idx = Integer.parseInt (path.substring (path.lastIndexOf ('=') + 1));
-        String body;
-        if (fileList == null)
-            body = "<h1>Please reload gallery page</h1>";
-        else {
-            File current = fileList.get (idx);
-            String myscript = "document.onkeydown = checkKey;\n" +
-                    "function checkKey(e) {\n" +
-                    "    e = e || window.event;\n" +
-                    "    if (e.keyCode == '37') prv.click();\n" +
-                    "    else if (e.keyCode == '39')  nxt.click();\n" +
-                    "}";
-            body = "<script>" + myscript + "</script>";
-            String headline = ": " + idx + " - " + current.getName () + " - " +
-                    Tools.humanReadableByteCount (current.length ()) + " - " +
-                    createNavigationLink (idx, true) +
-                    createNavigationLink (idx, false) + "<hr>";
+            String backidx = createNavIndex (idx, true);
+            String fwdidx = createNavIndex (idx, false);
             if (Tools.isVideo (current.getName ())) {
+                byte[] bt = Tools.getResourceAsArray ("videopage.html");
+                body = new String (bt);
                 InetAddress inetAddress = InetAddress.getLocalHost ();
                 String vidserv = "http://" + inetAddress.getHostAddress () + ":" +
                         Http206Transmitter.getInstance ().getPort (); // server
                 String vid = current.getAbsolutePath (); // video
                 Http206Transmitter.getInstance ().setVideo (vid);
-                body = body + "- Vid" + headline +
-                        "<video width=\"100%\" controls id=\"video\" src=\"" + vidserv + "\" autoplay=\"autoplay\" />";
-                // "<iframe src=\""+vidserv+"\"></iframe>";
+                body = body.replace ("@@VIDSRC", vidserv);
+                body = body.replace ("@@VIDINFO", "- Vid"+headline);
             } else {
+                byte[] bt;
+                if (m_pageStyle == '0')
+                    bt = Tools.getResourceAsArray ("imgpage0.html");
+                else
+                    bt = Tools.getResourceAsArray ("imagepage.html");
+                body = new String (bt);
                 String img = BIGIMAGE + path.substring (path.indexOf ("?img=") + 5) + NUMSEP + saltValue + ".jpg";
-                body = body + "- Img" + headline +
-                        "<img src=\"" + img + "\" style=\"width: 100%;\" />";
+                body = body.replace ("@@THEIMG", img);
+                body = body.replace ("@@IMGINFO", "- Img"+headline);
             }
+            body = body.replace ("@@PRV", backidx);
+            body = body.replace ("@@NXT", fwdidx);
+            sendHtmlOverHttp2 (body, out);
         }
-        sendHtmlOverHttp (body, out);
     }
+
+//    private void sendMediaPage (NIOSocket out, String path) throws Exception {
+//        int idx = Integer.parseInt (path.substring (path.lastIndexOf ('=') + 1));
+//        String body;
+//        if (fileList == null)
+//            body = "<h1>Please reload gallery page</h1>";
+//        else {
+//            File current = fileList.get (idx);
+//            String myscript = "document.onkeydown = checkKey;\n" +
+//                    "function checkKey(e) {\n" +
+//                    "    e = e || window.event;\n" +
+//                    "    if (e.keyCode == '37') prv.click();\n" +
+//                    "    else if (e.keyCode == '39')  nxt.click();\n" +
+//                    "}";
+//            body = "<script>" + myscript + "</script>";
+//            String headline = ": " + idx + " - " + current.getName () + " - " +
+//                    Tools.humanReadableByteCount (current.length ()) + " - " +
+//                    createNavigationLink (idx, true) +
+//                    createNavigationLink (idx, false) + "<hr>";
+//            if (Tools.isVideo (current.getName ())) {
+//                InetAddress inetAddress = InetAddress.getLocalHost ();
+//                String vidserv = "http://" + inetAddress.getHostAddress () + ":" +
+//                        Http206Transmitter.getInstance ().getPort (); // server
+//                String vid = current.getAbsolutePath (); // video
+//                Http206Transmitter.getInstance ().setVideo (vid);
+//                body = body + "- Vid" + headline +
+//                        "<video width=\"100%\" controls id=\"video\" src=\"" + vidserv + "\" autoplay=\"autoplay\" />";
+//                // "<iframe src=\""+vidserv+"\"></iframe>";
+//            } else {
+//                String img = BIGIMAGE + path.substring (path.indexOf ("?img=") + 5) + NUMSEP + saltValue + ".jpg";
+//                body = body + "- Img" + headline +
+//                        "<img src=\"" + img + "\" style=\"width: 100%;\" />";
+//            }
+//        }
+//        sendHtmlOverHttp (body, out);
+//    }
 
     private byte[] loadTextFile (String file) throws Exception {
         Path p = Paths.get (file);
@@ -473,7 +491,7 @@ public class NIOWebServerClient {
                 resource.equals ("fwdarrow.ico") ||
                 resource.equals ("jquery.min.js") ||
                 resource.equals ("jquery.zoom.js")) {
-            System.out.println ("load "+resource);
+            //System.out.println ("load "+resource);
             byte[] bt = Tools.getResourceAsArray (resource);
             outputSocket.write (bt);
         } else if (resource.startsWith ("show.html")) {

@@ -37,11 +37,13 @@ import java.io.IOException;
 public class NIOWebServer {
     private final int port;
     private final String basePath;
+    private final char pageStyle;
     private NIOService service;
 
-    public NIOWebServer(int port, String basePath) {
+    public NIOWebServer (int port, String basePath, char pageStyle) {
         this.port = port;
         this.basePath = basePath;
+        this.pageStyle = pageStyle;
     }
 
     public void halt() {
@@ -50,7 +52,7 @@ public class NIOWebServer {
 
     private void doListen (NIOServerSocket socket)
     {
-        NIOWebServerClient client = new NIOWebServerClient(this.basePath);
+        NIOWebServerClient client = new NIOWebServerClient (this.basePath,this.pageStyle);
 
         socket.listen(new ServerSocketObserverAdapter() {
             public void newConnection (NIOSocket nioSocket) {
@@ -78,7 +80,7 @@ public class NIOWebServer {
         try {
             service = new NIOService();
             NIOServerSocket socket = service.openServerSocket (port, 100);
-            NIOWebServerClient client = new NIOWebServerClient(this.basePath);
+            NIOWebServerClient client = new NIOWebServerClient(this.basePath, pageStyle);
             doListen(socket);
             socket.setConnectionAcceptor(ConnectionAcceptor.ALLOW);
             while (true) {

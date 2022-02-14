@@ -23,16 +23,17 @@ class MainFrame
 
     private static void loadConfiguration()
     {
-        configFile.setAction("ftp-port", strings -> ftp.setPortTxt(strings[0]));
-        configFile.setAction("ftp-path", strings -> ftp.setPathTxt(strings[0]));
-        configFile.setAction("ftp-start", strings -> ftp.button.simulateClick());
-        configFile.setAction("http-port", strings -> web.setPortTxt(strings[0]));
-        configFile.setAction("http-path", strings -> web.setPathTxt(strings[0]));
-        configFile.setAction("http-start", strings -> web.button.simulateClick());
-        configFile.setAction("http-browser-start", strings -> web.browser_startflag = true);
-        configFile.setAction("chunksize", strings
+        configFile.setAction ("ftp-port", strings -> ftp.setPortTxt(strings[0]));
+        configFile.setAction ("ftp-path", strings -> ftp.setPathTxt(strings[0]));
+        configFile.setAction ("ftp-start", strings -> ftp.button.simulateClick());
+        configFile.setAction ("http-port", strings -> web.setPortTxt(strings[0]));
+        configFile.setAction ("http-path", strings -> web.setPathTxt(strings[0]));
+        configFile.setAction ("imagepage", strings -> web.setImagePageStyle(strings[0]));
+        configFile.setAction ("http-start", strings -> web.button.simulateClick());
+        configFile.setAction ("http-browser-start", strings -> web.browser_startflag = true);
+        configFile.setAction ("chunksize", strings
                 -> Http206Transmitter.getInstance().setChunkSize(Integer.parseInt(strings[0])));
-        configFile.setAction("stream-port", strings
+        configFile.setAction ("stream-port", strings
                 -> Http206Transmitter.getInstance().setPort(Integer.parseInt(strings[0])));
         try
         {

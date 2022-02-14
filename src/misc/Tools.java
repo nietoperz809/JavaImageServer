@@ -17,7 +17,6 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Administrator
@@ -182,7 +181,7 @@ public class Tools
     }
 
     public static void runAsync (Runnable r) {
-        CompletableFuture.runAsync (r::run
+        CompletableFuture.runAsync (r
         );
     }
 

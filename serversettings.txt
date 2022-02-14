@@ -5,8 +5,9 @@ ftp-path :: C:\Users\Administrator\Desktop\
 
 *** set http params and start web server ***
 http-port :: 80
-http-path :: C:\Users\Administrator\Desktop\fisk2
+http-path :: C:\Users\Administrator\Desktop\pr1n
 http-start
+imagepage :: 0
 * http-browser-start
 
 ******** streaming server settings ****

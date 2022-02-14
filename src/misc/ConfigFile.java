@@ -83,7 +83,7 @@ public class ConfigFile
             Dbg.print("trying "+ _filepath);
             stream = Files.lines(Paths.get(_filepath));
         } catch (Exception e) {
-            System.out.print("first chance failed ... ");
+            //System.out.print("first chance failed ... ");
             Dbg.print("trying "+_filename);
             stream = Files.lines(Paths.get(_filename));
             _filepath = _filename;

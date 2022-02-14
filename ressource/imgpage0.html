@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+    a:hover {
+  color: white;
+  background-color: black;
+    }
+    a:visited {
+    color: green;
+    }
+    </style>
+</head>
+<body>
+<script>
+    document.onkeydown = checkKey;
+    function checkKey(e) {
+        e = e || window.event;
+        if (e.keyCode == '37') prv.click();
+        else if (e.keyCode == '39')  nxt.click();
+    }
+</script>
+@@IMGINFO
+<a id="prv" href="show.html?img=@@PRV" target="_self"><img src="backarrow.ico"></a>
+<a id="nxt" href="show.html?img=@@NXT" target="_self"><img src="fwdarrow.ico"></a>
+<hr>
+<img src="@@THEIMG" style="width: 100%;"/>
+</body>
+</html>
