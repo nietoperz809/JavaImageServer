@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThumbManager {
     public static final String DNAME = "thumbs";
     private final String thumbsDir;
     private boolean folderExists = false;
-    private static NPExecutor pool = new NPExecutor (10, 1000);
+    private static final NPExecutor pool = new NPExecutor (10, 1000);
     //private static GreenExecutor green = new GreenExecutor (50);
 
     public ThumbManager (String basepath) {
@@ -21,16 +23,16 @@ public class ThumbManager {
             folderExists = true;
             System.out.println ("Thumb builder start: " + basepath);
             File[] files = new File (basepath).listFiles ();
-            for (File f : files) {
+            AtomicInteger cnt = new AtomicInteger();
+            for (File f : Objects.requireNonNull (files)) {
                 if (f.isDirectory ())
                     continue;
                 if (!Tools.isImage (f.getName ()))
                     continue;
-                //Tools.runAsync(() -> {
-                //green.execute (() -> {
                 pool.execute (() -> {
+                    int i = cnt.incrementAndGet ();
                     createIfNotExists (f);
-                    System.out.println (Thread.currentThread ().getName ()+ " end!");
+                    System.out.println (Thread.currentThread ().getName ()+ " end! "+i);
                 });
             }
             System.out.println ("Thumb builder done: " + basepath);
@@ -62,11 +64,11 @@ public class ThumbManager {
     public void createIfNotExists (File f) {
         String name = thumbsDir + File.separator + f.getName ();
         if (!new File (name).exists ()) {
-            System.out.println (Thread.currentThread ().getName ()+" loading " + name);
+            System.out.println (Thread.currentThread ().getName ()+" creating " + name);
             try {
                 byte[] bytes = Tools.reduceImg (f, 100);
                 saveThumb (bytes, f.getName ());
-                bytes = null;
+                //bytes = null;
             } catch (Exception e) {
                 e.printStackTrace ();
             }

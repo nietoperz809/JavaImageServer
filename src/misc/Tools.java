@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
+import java.nio.file.Path;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Objects;
@@ -27,6 +28,10 @@ public class Tools
     {
         InputStream is = ClassLoader.getSystemResourceAsStream(name);
         return new BufferedInputStream (Objects.requireNonNull (is));
+    }
+
+    public static String getResource (String name) {
+        return new String(getResourceAsArray (name));
     }
 
     public static byte[] getResourceAsArray (String name)
@@ -192,5 +197,14 @@ public class Tools
      */
     public static boolean isText (String in) {
         return hasExtension (in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
+    }
+
+    public static boolean moveToTrash (String path) {
+        try {
+            return  Desktop.getDesktop ().moveToTrash (new File(path));
+        } catch (Exception e) {
+            System.out.println (e);
+            return false;
+        }
     }
 }

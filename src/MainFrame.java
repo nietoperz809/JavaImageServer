@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-class MainFrame
+public class MainFrame
 {
     private static final ConfigFile configFile = new ConfigFile("serversettings.txt");
 
@@ -20,20 +20,22 @@ class MainFrame
     private static final FtpServerGUI ftp = new FtpServerGUI();
     private static final WebServerGUI web = new WebServerGUI();
     private static final ConfigGUI config = new ConfigGUI();
+    private boolean visibility = true;
 
-    private static void loadConfiguration()
+    private void loadConfiguration()
     {
-        configFile.setAction ("ftp-port", strings -> ftp.setPortTxt(strings[0]));
-        configFile.setAction ("ftp-path", strings -> ftp.setPathTxt(strings[0]));
-        configFile.setAction ("ftp-start", strings -> ftp.button.simulateClick());
-        configFile.setAction ("http-port", strings -> web.setPortTxt(strings[0]));
-        configFile.setAction ("http-path", strings -> web.setPathTxt(strings[0]));
-        configFile.setAction ("imagepage", strings -> web.setImagePageStyle(strings[0]));
-        configFile.setAction ("http-start", strings -> web.button.simulateClick());
-        configFile.setAction ("http-browser-start", strings -> web.browser_startflag = true);
-        configFile.setAction ("chunksize", strings
+        configFile.onEntry ("ftp-port", strings -> ftp.setPortTxt(strings[0]));
+        configFile.onEntry ("ftp-path", strings -> ftp.setPathTxt(strings[0]));
+        configFile.onEntry ("ftp-start", strings -> ftp.button.simulateClick());
+        configFile.onEntry ("http-port", strings -> web.setPortTxt(strings[0]));
+        configFile.onEntry ("http-path", strings -> web.setPathTxt(strings[0]));
+        configFile.onEntry ("imagepage", strings -> web.setImagePageStyle(strings[0]));
+        configFile.onEntry ("http-start", strings -> web.button.simulateClick());
+        configFile.onEntry ("no-gui", strings -> this.visibility = false);
+        configFile.onEntry ("http-browser-start", strings -> web.browser_startflag = true);
+        configFile.onEntry ("chunksize", strings
                 -> Http206Transmitter.getInstance().setChunkSize(Integer.parseInt(strings[0])));
-        configFile.setAction ("stream-port", strings
+        configFile.onEntry ("stream-port", strings
                 -> Http206Transmitter.getInstance().setPort(Integer.parseInt(strings[0])));
         try
         {
@@ -45,7 +47,7 @@ class MainFrame
         }
     }
 
-    private static void start()
+    public void start()
     {
         JFrame jf = new JFrame("InetServer");
 
@@ -80,18 +82,18 @@ class MainFrame
             }
         });
 
+        // Exec config file
+        loadConfiguration();
+
         jf.add(tabpane);
         jf.pack();
         jf.setResizable(false);
         jf.setLocationRelativeTo(null);
-        jf.setVisible(true);
-
-        // Exec config file
-        loadConfiguration();
+        jf.setVisible(visibility);
     }
 
     public static void main (String[] args)
     {
-        SwingUtilities.invokeLater (MainFrame::start);
+       SwingUtilities.invokeLater (() -> new MainFrame().start());
     }
 }

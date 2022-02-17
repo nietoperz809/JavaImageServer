@@ -3,11 +3,15 @@
 <head>
     <style>
     a:hover {
-  color: white;
-  background-color: black;
+    color: white;
+    background-color: black;
     }
     a:visited {
     color: green;
+    }
+    img.special:hover {
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
     }
     </style>
 </head>
@@ -24,6 +28,6 @@
 <a id="prv" href="show.html?img=@@PRV" target="_self"><img src="backarrow.ico"></a>
 <a id="nxt" href="show.html?img=@@NXT" target="_self"><img src="fwdarrow.ico"></a>
 <hr>
-<img src="@@THEIMG" style="width: 100%;"/>
+<img class="special" src="@@THEIMG" style="width: 100%;"/>
 </body>
 </html>

@@ -13,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static misc.Tools.infoBox;
 
@@ -23,8 +24,7 @@ public class WebServerGUI extends JPanel {
     private static final long serialVersionUID = 1L;
     public boolean browser_startflag;
     private volatile NIOWebServer sockserver = null;
-    private final Http206Transmitter rrt = Http206Transmitter.getInstance();
-
+    Http206Transmitter rrt = null;
     private String imgPageStyle = "0";
 
     /**
@@ -150,6 +150,7 @@ public class WebServerGUI extends JPanel {
 
             // Start video stream server
             new Thread(() -> {
+                rrt = Http206Transmitter.getInstance();
                 rrt.startServer();
                 rrt.setVideo("");
             }).start();
@@ -161,7 +162,10 @@ public class WebServerGUI extends JPanel {
             sockserver.halt();
             sockserver = null;
         }
-        rrt.halt ();
+        if (rrt != null) {
+            rrt.halt ();
+            rrt = null;
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

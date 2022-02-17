@@ -14,5 +14,8 @@ imagepage :: 0
 chunksize :: 2
 stream-port :: 8899
 
+************* GUI? ************
+* no-gui
+
 
 

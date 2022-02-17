@@ -5,8 +5,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static misc.Tools.getPathOfClass;
@@ -51,7 +49,7 @@ public class ConfigFile
      * @param name Keyword
      * @param r Handler function
      */
-    public void setAction (String name, Consumer<String[]> r)
+    public void onEntry (String name, Consumer<String[]> r)
     {
         _map.put (name, r);
     }

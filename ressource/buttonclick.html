@@ -1,0 +1,11 @@
+<script src='jquery.min.js'></script>
+<script>
+function proceed (arg) {
+    var form = document.createElement('form');
+    form.setAttribute('method', 'get');
+    form.setAttribute('action', arg);
+    form.style.display = 'hidden';
+    document.body.appendChild(form)
+    form.submit();
+}
+</script>
