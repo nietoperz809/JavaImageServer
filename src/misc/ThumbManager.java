@@ -21,7 +21,7 @@ public class ThumbManager {
         try {
             Files.createDirectories (Paths.get (thumbsDir));
             folderExists = true;
-            System.out.println ("Thumb builder start: " + basepath);
+            Tools.println ("Thumb builder start: " + basepath);
             File[] files = new File (basepath).listFiles ();
             AtomicInteger cnt = new AtomicInteger();
             for (File f : Objects.requireNonNull (files)) {
@@ -32,10 +32,10 @@ public class ThumbManager {
                 pool.execute (() -> {
                     int i = cnt.incrementAndGet ();
                     createIfNotExists (f);
-                    System.out.println (Thread.currentThread ().getName ()+ " end! "+i);
+                    Tools.println (Thread.currentThread ().getName ()+ " end! "+i);
                 });
             }
-            System.out.println ("Thumb builder done: " + basepath);
+            Tools.println ("Thumb builder done: " + basepath);
 
         } catch (Exception e) {
             Dbg.print ("failed to create thumbs dir: " + e);
@@ -64,7 +64,7 @@ public class ThumbManager {
     public void createIfNotExists (File f) {
         String name = thumbsDir + File.separator + f.getName ();
         if (!new File (name).exists ()) {
-            System.out.println (Thread.currentThread ().getName ()+" creating " + name);
+            Tools.println (Thread.currentThread ().getName ()+" creating " + name);
             try {
                 byte[] bytes = Tools.reduceImg (f, 100);
                 saveThumb (bytes, f.getName ());

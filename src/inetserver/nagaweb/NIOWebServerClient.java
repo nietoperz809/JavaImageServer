@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import static java.util.Comparator.comparingLong;
 import static misc.ThumbManager.DNAME;
 import static misc.Tools.getResource;
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 
 /**
@@ -309,7 +310,7 @@ public class NIOWebServerClient {
             System.gc ();
             System.runFinalization ();
             total += amount;
-            Dbg.print ("Chunked " + Tools.humanReadableByteCount (total));
+            //Dbg.print ("Chunked " + Tools.humanReadableByteCount (total));
         }
         fi.close ();
     }
@@ -365,7 +366,7 @@ public class NIOWebServerClient {
             msg = "Please reload gallery page";
         else {
             String abs = fileList.get (idx).getAbsolutePath ();
-            System.out.println (abs + " -- "+idx);
+            Tools.println (abs + " -- "+idx);
             boolean b = Tools.moveToTrash (abs);
             if (b)
                 msg = "Success!";
@@ -384,7 +385,7 @@ public class NIOWebServerClient {
         else {
             File current = fileList.get (idx);
             String headline = ": " + idx + " - " + current.getName () + " - " +
-                    Tools.humanReadableByteCount (current.length ()) + " - ";
+                    byteCountToDisplaySize (current.length ()) + " - ";
             String backidx = createNavIndex (idx, true);
             String fwdidx = createNavIndex (idx, false);
             if (Tools.isVideo (current.getName ())) {

@@ -160,17 +160,17 @@ public class Tools
         JOptionPane.showMessageDialog(null, infoMessage,  "Huh???", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public static String humanReadableByteCount(long bytes) {
-        if (-1000 < bytes && bytes < 1000) {
-            return bytes + " B";
-        }
-        CharacterIterator ci = new StringCharacterIterator("kMGTPE");
-        while (bytes <= -999_950 || bytes >= 999_950) {
-            bytes /= 1000;
-            ci.next();
-        }
-        return String.format("%.1f %cB", bytes / 1000.0, ci.current());
-    }
+//    public static String humanReadableByteCount(long bytes) {
+//        if (-1000 < bytes && bytes < 1000) {
+//            return bytes + " B";
+//        }
+//        CharacterIterator ci = new StringCharacterIterator("kMGTPE");
+//        while (bytes <= -999_950 || bytes >= 999_950) {
+//            bytes /= 1000;
+//            ci.next();
+//        }
+//        return String.format("%.1f %cB", bytes / 1000.0, ci.current());
+//    }
 
     /**
      * Get the path of the filesystem where a class is at runtime
@@ -190,6 +190,10 @@ public class Tools
         );
     }
 
+    public static void println (final String s) {
+        runAsync (() -> System.out.println (s));
+    }
+
     /**
      * Check if file is text, not binary
      * @param in a file name
@@ -203,7 +207,7 @@ public class Tools
         try {
             return  Desktop.getDesktop ().moveToTrash (new File(path));
         } catch (Exception e) {
-            System.out.println (e);
+            Tools.println (e.toString ());
             return false;
         }
     }

@@ -7,7 +7,7 @@ public class Dbg {
     public static void print (Object in) {
         if (enabled) {
             long t = (System.currentTimeMillis()-t0)/1000;
-            System.out.println(t+": "+in);
+            Tools.println(t+": "+in);
         }
     }
 

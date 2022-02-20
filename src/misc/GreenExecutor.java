@@ -32,13 +32,13 @@ public class GreenExecutor implements Executor {
         });
     }
 
-    public static void main (String[] args) {
-        GreenExecutor gr = new GreenExecutor (5);
-
-        for (int s=0; s<500; s++) {
-            final int ss = s;
-            gr.execute (() -> System.out.println (ss + " " + Thread.currentThread ().getId ()));
-        }
-        System.out.println ("remaining: "+gr.dlist.size ());
-    }
+//    public static void main (String[] args) {
+//        GreenExecutor gr = new GreenExecutor (5);
+//
+//        for (int s=0; s<500; s++) {
+//            final int ss = s;
+//            gr.execute (() -> System.out.println (ss + " " + Thread.currentThread ().getId ()));
+//        }
+//        System.out.println ("remaining: "+gr.dlist.size ());
+//    }
 }
