@@ -358,14 +358,14 @@ public class NIOWebServerClient {
 
     private void toTrash (NIOSocket out, String path) throws Exception {
         String num = path.substring (path.lastIndexOf ('=') + 1);
-        num = num.substring(0, num.length() - 1);
         int idx = Integer.parseInt (num);
         String msg;
-        String backLink = "???";
+        String backLink = m_basePath;
         if (fileList == null)
             msg = "Please reload gallery page";
         else {
             String abs = fileList.get (idx).getAbsolutePath ();
+            System.out.println (abs + " -- "+idx);
             boolean b = Tools.moveToTrash (abs);
             if (b)
                 msg = "Success!";
