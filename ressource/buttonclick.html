@@ -1,6 +1,9 @@
 <script src='jquery.min.js'></script>
 <script>
 function proceed (arg) {
+    let text = "Really move "+arg+" into trash?";
+    if (confirm(text) == false)
+        return;
     var form = document.createElement('form');
     form.setAttribute('method', 'get');
     form.setAttribute('action', arg);

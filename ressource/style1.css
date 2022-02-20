@@ -2,3 +2,5 @@ a:hover { color: white; background-color: black; }
 a:visited { color: green; }
 table, th, td { border: 1px solid black; }
 th, td { background-color: #96D4D4; }
+form { float: left; margin-right: 5px; }
+img { image-rendering: pixelated; }

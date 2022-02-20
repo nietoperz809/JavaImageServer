@@ -3,6 +3,7 @@ package inetserver.nagaweb;
 import inetserver.nagaweb.videostream.Http206Transmitter;
 import misc.*;
 import naga.NIOSocket;
+import org.apache.commons.io.FilenameUtils;
 import transform.UrlEncodeUTF8;
 
 import java.io.File;
@@ -167,12 +168,7 @@ public class NIOWebServerClient {
 
         sb2.append ("Here: ").append (path).append ("  --  \r\n");
         sb2.append ("Objects: ").append (totalsize).append (" --- Omitted: ").append (totalsize - filtsize);
-        Path pp = Paths.get (path).getParent ();
-        if (pp != null && !path.equals (m_basePath)) {
-            String u8 = UrlEncodeUTF8.transform (pp.toString ());
-            sb2.append (" --- <a href=\"").append (u8).append ("\">");
-            sb2.append ("*BACK*").append ("</a>");
-        }
+        sb2.append (makeBackLink (path));
         sb2.append ("<hr>\r\n");
 
         int imageCtr = 0;
@@ -213,25 +209,27 @@ public class NIOWebServerClient {
         appendLink (txtfiles, sb2, false);
         appendLink (otherfiles, sb2, false);
         sb2.append (sb);
-        sb2.append ("<br>Images: ").append (imageCtr).append ("<br>Videos ").append (vidCtr);
-        sb2.append ("<form action=\"delthumb\">\n" + "<input type=\"hidden\" name=\"").append (path).append ("\">").append ("    <input type=\"submit\" value=\"Regenerate Thumbs\" />\n").append ("</form>");
+        sb2.append ("<br>Images: ").append (imageCtr).append ("<br>Videos ").append (vidCtr).append("<br>");
+        sb2.append (makeMiniForm ("delthumb", "Regenerate Thumbs", path));
+        sb2.append (makeMiniForm ("delthis", "Move this folder into trash", path));
         return sb2.toString ();
     }
 
-//    private void zipHead(PrintWriter w, int len, String filename)
-//    {
-//        w.println("HTTP/1.1 200 OK");
-//        w.println("Pragma: public");
-//        w.println("Expires: 0");
-//        w.println("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-//        w.println("Cache-Control: public");
-//        w.println("Content-Description: File Transfer");
-//        w.println("Content-type: application/octet-stream");
-//        w.println("Content-Disposition: attachment; filename=\"" + filename + "\"");
-//        w.println("Content-Transfer-Encoding: binary");
-//        w.println("Content-Length: " + len);
-//        w.println();
-//    }
+    private String makeMiniForm (String action, String button, String path) {
+        return "<form action=\""+action+"\">\n" +
+                "<input type=\"hidden\" name=\""+path+"\">" +
+                "<input type=\"submit\" value=\""+button+"\"/></form>";
+    }
+
+    private String makeBackLink (String path) {
+        String res = "";
+        Path pp = Paths.get (path).getParent ();
+        if (pp != null && !path.equals (m_basePath)) {
+            String u8 = UrlEncodeUTF8.transform (pp.toString ());
+            res = " --- <a href=\"" + u8 + "\">*BACK*</a>";
+        }
+        return res;
+    }
 
     /**
      * Send MP4 HTTP header
@@ -262,14 +260,12 @@ public class NIOWebServerClient {
      * @param out output stream
      * @param len size of image
      */
-    private void imgHead (NIOSocket out, int len) {
-        String b = "HTTP/1.1 200 OK\n" +
-                "Content-Length: " + len + "\n" +
-                "Content-Type: image/jpeg\n" +
-                "Cache-Control: max-age=31536000, public" +
-                "Cache-Control: max-age=31536000, public" +
-                "\nConnection: close\n" +
-                "\n";
+    private void imgHead (NIOSocket out, int len, String type) {
+       // System.out.println (type);
+        String b = "HTTP/1.1 200 OK\r\n" +
+                "Content-Length: " + len + "\r\n" +
+                "Content-Type: image/"+type+"\r\n" +
+                "\r\n";
         out.write (b.getBytes (StandardCharsets.UTF_8));
     }
 
@@ -284,12 +280,13 @@ public class NIOWebServerClient {
             bytes = thumbs.getVideoThumbnail (f);
         else
             bytes = thumbs.getImageThumbnail (f);
-        imgHead (out, bytes.length);
+        imgHead (out, bytes.length,"jpeg");
         out.write (bytes);
     }
 
     private void sendJpegOriginal (NIOSocket out, File f) throws Exception {
-        imgHead (out, (int) f.length ());
+        String ext = FilenameUtils.getExtension (f.getName ());
+        imgHead (out, (int) f.length (), ext);
         transmitFileInChunks (out, f);
     }
 
@@ -323,7 +320,7 @@ public class NIOWebServerClient {
         transmitFileInChunks (out, f);
     }
 
-    private void sendHtmlOverHttp2 (String content, NIOSocket out) throws Exception {
+    private void sendOverHttp (String content, NIOSocket out) throws Exception {
         String http = "HTTP/1.1 200 OK\r\n\r\n " + content;
         out.write (http.getBytes (UrlEncodeUTF8.utf8));
     }
@@ -364,17 +361,19 @@ public class NIOWebServerClient {
         num = num.substring(0, num.length() - 1);
         int idx = Integer.parseInt (num);
         String msg;
+        String backLink = "???";
         if (fileList == null)
             msg = "Please reload gallery page";
         else {
-            File current = fileList.get (idx);
-            boolean b = Tools.moveToTrash (current.getAbsolutePath ());
+            String abs = fileList.get (idx).getAbsolutePath ();
+            boolean b = Tools.moveToTrash (abs);
             if (b)
                 msg = "Success!";
             else
                 msg = "Fail!";
+            backLink = makeBackLink (abs);
         }
-        sendHtmlOverHttp2 ("<h1>"+msg+"</h1>", out);
+        sendOverHttp ("<h1>"+msg+"</h1>"+backLink, out);
     }
 
     private void sendMediaPage2 (NIOSocket out, String path) throws Exception {
@@ -409,7 +408,7 @@ public class NIOWebServerClient {
             body = body.replace ("@@PRV", backidx);
             body = body.replace ("@@NXT", fwdidx);
         }
-        sendHtmlOverHttp2 (body, out);
+        sendOverHttp (body, out);
     }
 
 //    private void sendMediaPage (NIOSocket out, String path) throws Exception {
@@ -455,10 +454,8 @@ public class NIOWebServerClient {
 
     private String formatTextFile (String path) {
         String cnt;
-        byte[] b; // = new byte[0];
         try {
-            b = loadTextFile (path);
-            cnt = new String (b, StandardCharsets.UTF_8);
+            cnt = new String (loadTextFile (path), StandardCharsets.UTF_8);
         } catch (Exception e) {
             cnt = e.toString ();
         }
@@ -475,13 +472,17 @@ public class NIOWebServerClient {
      */
     void handleRequest (String imagePath, Http http, NIOSocket outputSocket) throws Exception {
         String resource = UrlEncodeUTF8.retransform (http.getRequestedResource ());
-        if (Objects.requireNonNull (resource).startsWith ("delthumb?")) {
+        if (Objects.requireNonNull (resource).startsWith ("delthis?")) {
+            String target = resource.substring (8, resource.length () - 1);
+            String msg = Tools.moveToTrash (target) ? "Success!" : "Fail!";
+            sendOverHttp ("<h1>"+msg+"</h1>"+makeBackLink (target), outputSocket);
+        }
+        else if (resource.startsWith ("delthumb?")) {
             String target = resource.substring (9, resource.length () - 1);
             String thumbsdir = target + File.separator + DNAME;
             deleteDirectory (new File (thumbsdir));
             sendGalleryPage (outputSocket, target);
         } else if (resource.startsWith ("trash")) {
-            //System.out.println (resource);
             toTrash (outputSocket, resource);
         } else if (Tools.isImage (resource)) {
             resource = resource.substring (0, resource.lastIndexOf ('.'));
@@ -499,18 +500,15 @@ public class NIOWebServerClient {
                 Tools.isAudio (resource)) {
             sendDataFile (outputSocket, resource);
         } else if (Tools.isText (resource)) {
-            String s = "HTTP/1.1 200 OK\r\n\r\n <html>" + formatTextFile (resource) + "</html>";
-            outputSocket.write (s.getBytes (StandardCharsets.UTF_8));
+            sendOverHttp ("<html>"+formatTextFile(resource)+"</html>",outputSocket);
         } else if (resource.equals ("favicon.ico") ||
                 resource.equals ("backarrow.ico") ||
                 resource.equals ("fwdarrow.ico") ||
                 resource.equals ("jquery.min.js") ||
                 resource.equals ("jquery.zoom.js")) {
-            //System.out.println ("load "+resource);
             byte[] bt = Tools.getResourceAsArray (resource);
             outputSocket.write (bt);
         } else if (resource.startsWith ("show.html")) {
-            //sendMediaPage (outputSocket, resource);
             sendMediaPage2 (outputSocket, resource);
         } else {
             if (resource.isEmpty ()) {
