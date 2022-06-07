@@ -52,7 +52,7 @@ public class MainFrame
         JFrame jf = new JFrame("InetServer");
 
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        jf.setIconImage(Tools.getImageFromResource("favicon.ico"));
+        jf.setIconImage(Tools.loadImageFromResource ("favicon.ico"));
         JTabbedPane tabpane = new JTabbedPane (JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
         tabpane.addTab("FTP", ftp);
         tabpane.addTab("HTTP", web);

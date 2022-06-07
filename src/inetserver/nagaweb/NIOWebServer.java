@@ -56,7 +56,7 @@ public class NIOWebServer {
 
         socket.listen(new ServerSocketObserverAdapter() {
             public void newConnection (NIOSocket nioSocket) {
-                Dbg.print("Client " + nioSocket.getIp() + " connected.");
+                //Dbg.print("Client " + nioSocket.getIp() + " connected.");
                 nioSocket.listen(new SocketObserverAdapter() {
                     public void packetReceived (NIOSocket socket, byte[] packet) {
                         Http http = new Http(packet);
@@ -69,7 +69,7 @@ public class NIOWebServer {
                     }
 
                     public void connectionBroken (NIOSocket nioSocket, Exception exception) {
-                        Dbg.print("Client " + nioSocket.getIp() + " disconnected.");
+                        //Dbg.print("Client " + nioSocket.getIp() + " disconnected.");
                     }
                 });
             }

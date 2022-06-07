@@ -65,6 +65,9 @@ public class Http206Transmitter {
             start = r.start;
             end = Math.min (start + m_chunksize, r.end);
         }
+        Dbg.print("Start: "+start);
+        Dbg.print("End: "+end);
+
         int contentLen = ((start == end) ? 0 : (end - start + 1));
         String contentRange = ""+start + "-" + end + "/" + m_video.length();
         socket.println("HTTP/1.1 206 Partial Content");

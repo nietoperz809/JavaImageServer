@@ -5,37 +5,34 @@ package misc;
 
 //import transform.Transformation;
 
+import com.luciad.imageio.webp.WebPReadParam;
 import misc.gifdecoder.AnimatedGIFReader;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
-import java.nio.file.Path;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Administrator
  */
-public class Tools
-{
-    public static InputStream getResourceAsStream (String name)
-    {
+public class Tools {
+    public static InputStream getResourceAsStream(String name) {
         InputStream is = ClassLoader.getSystemResourceAsStream(name);
-        return new BufferedInputStream (Objects.requireNonNull (is));
+        return new BufferedInputStream(Objects.requireNonNull(is));
     }
 
-    public static String getResource (String name) {
-        return new String(getResourceAsArray (name));
+    public static String getResource(String name) {
+        return new String(getResourceAsArray(name));
     }
 
-    public static byte[] getResourceAsArray (String name)
-    {
+    public static byte[] getResourceAsArray(String name) {
         InputStream in = getResourceAsStream(name);
         try {
             byte[] arr = new byte[in.available()];
@@ -46,8 +43,7 @@ public class Tools
         }
     }
 
-    public static BufferedImage getImageFromResource (String name)
-    {
+    public static BufferedImage loadImageFromResource(String name) {
         try {
             return ImageIO.read(getResourceAsStream(name));
         } catch (IOException e) {
@@ -62,26 +58,36 @@ public class Tools
      * @return byte array of jpeg data
      * @throws Exception if smth. gone wrong
      */
-    public static byte[] reduceImg (File path, int xy) throws Exception
-    {
+    public static byte[] reduceImg(File path, int xy) throws Exception {
         BufferedImage image2 = resizeImage(loadImage(path), xy, xy);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(image2, "jpg", os);
         return os.toByteArray();
     }
 
-    public static BufferedImage loadImage (File file) throws Exception
-    {
-        if (hasExtension(file.getName(), ".gif"))
-        {
-            FileInputStream fin = new FileInputStream (file);
+    public static BufferedImage loadImage(File file) throws Exception {
+        String name = file.getName();
+        if (hasExtension(name, ".gif")) {
+            FileInputStream fin = new FileInputStream(file);
             AnimatedGIFReader reader = new AnimatedGIFReader();
             BufferedImage img = reader.read(fin);
             fin.close();
             return img;
-        }
-        else
-        {
+        } else if (hasExtension(name, ".webp")) {
+            // Obtain a WebP ImageReader instance
+            ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
+
+            // Configure decoding parameters
+            WebPReadParam readParam = new WebPReadParam();
+            readParam.setBypassFiltering(true);
+
+            // Configure the input on the ImageReader
+            reader.setInput(new FileImageInputStream(file));
+
+            // Decode the image
+            BufferedImage image = reader.read(0, readParam);
+            return image;
+        } else {
             return ImageIO.read(file);
         }
     }
@@ -96,8 +102,7 @@ public class Tools
         return false;
     }
 
-    public static String getExtension (String in)
-    {
+    public static String getExtension(String in) {
         int i = in.lastIndexOf('.');
         if (i > 0) {
             return in.substring(i);
@@ -115,7 +120,7 @@ public class Tools
     }
 
     public static boolean isImage(String in) {
-        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp", "gif", "jfif");
+        return hasExtension(in, ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".jfif", ".webp");
     }
 
     public static boolean isZip(String in) {
@@ -130,10 +135,8 @@ public class Tools
      * @param height        Height
      * @return new Image
      */
-    private static BufferedImage resizeImage (BufferedImage originalImage, int width, int height)
-    {
-        if (originalImage == null)
-        {
+    private static BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+        if (originalImage == null) {
             return null;
         }
         BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -150,14 +153,12 @@ public class Tools
         return resizedImage;
     }
 
-    public static void infoBox(String infoMessage, String titleBar)
-    {
+    public static void infoBox(String infoMessage, String titleBar) {
         JOptionPane.showMessageDialog(null, infoMessage, "InfoBox: " + titleBar, JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public static void infoBox(String infoMessage)
-    {
-        JOptionPane.showMessageDialog(null, infoMessage,  "Huh???", JOptionPane.INFORMATION_MESSAGE);
+    public static void infoBox(String infoMessage) {
+        JOptionPane.showMessageDialog(null, infoMessage, "Huh???", JOptionPane.INFORMATION_MESSAGE);
     }
 
 //    public static String humanReadableByteCount(long bytes) {
@@ -174,10 +175,11 @@ public class Tools
 
     /**
      * Get the path of the filesystem where a class is at runtime
+     *
      * @param c The class
      * @return The Path as string
      */
-    public static String getPathOfClass (Class<?> c) {
+    public static String getPathOfClass(Class<?> c) {
         String fp = c.getProtectionDomain().getCodeSource().getLocation().getPath();
         fp = new File(URI.create("file://" + fp)).getAbsolutePath();
         if (fp.endsWith(".jar"))
@@ -185,29 +187,46 @@ public class Tools
         return fp + File.separatorChar;
     }
 
-    public static void runAsync (Runnable r) {
-        CompletableFuture.runAsync (r
+    /**
+     * Asynchronously exec ab Runnable
+     *
+     * @param r the Runnable
+     */
+    public static void runAsync(Runnable r) {
+        CompletableFuture.runAsync(r
         );
     }
 
-    public static void println (final String s) {
-        runAsync (() -> System.out.println (s));
+    /**
+     * Async Println
+     *
+     * @param s String to be printed
+     */
+    public static void println(final String s) {
+        runAsync(() -> System.out.println(s));
     }
 
     /**
      * Check if file is text, not binary
+     *
      * @param in a file name
      * @return true if it's a text file
      */
-    public static boolean isText (String in) {
-        return hasExtension (in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
+    public static boolean isText(String in) {
+        return hasExtension(in, ".txt", ".cpp", ".c", ".h", ".java", ".cxx", ".hxx");
     }
 
-    public static boolean moveToTrash (String path) {
+    /**
+     * Send file to trash bin
+     *
+     * @param path Path to the file
+     * @return true on success
+     */
+    public static boolean moveToTrash(String path) {
         try {
-            return  Desktop.getDesktop ().moveToTrash (new File(path));
+            return Desktop.getDesktop().moveToTrash(new File(path));
         } catch (Exception e) {
-            Tools.println (e.toString ());
+            Tools.println(e.toString());
             return false;
         }
     }

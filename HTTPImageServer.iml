@@ -10,7 +10,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="common-image-3.7.0" level="project" />
-    <orderEntry type="library" name="commons-cli-1.1" level="project" />
     <orderEntry type="library" name="commons.io" level="project" />
+    <orderEntry type="library" name="sejda.imageio.webp" level="project" />
+    <orderEntry type="library" name="commons-cli-1.1" level="project" />
   </component>
 </module>

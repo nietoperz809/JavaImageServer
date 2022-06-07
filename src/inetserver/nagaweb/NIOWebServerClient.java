@@ -368,10 +368,7 @@ public class NIOWebServerClient {
             String abs = fileList.get (idx).getAbsolutePath ();
             Tools.println (abs + " -- "+idx);
             boolean b = Tools.moveToTrash (abs);
-            if (b)
-                msg = "Success!";
-            else
-                msg = "Fail!";
+            msg = b? "Success!" : "Fail!";
             backLink = makeBackLink (abs);
         }
         sendOverHttp ("<h1>"+msg+"</h1>"+backLink, out);
@@ -411,42 +408,6 @@ public class NIOWebServerClient {
         }
         sendOverHttp (body, out);
     }
-
-//    private void sendMediaPage (NIOSocket out, String path) throws Exception {
-//        int idx = Integer.parseInt (path.substring (path.lastIndexOf ('=') + 1));
-//        String body;
-//        if (fileList == null)
-//            body = "<h1>Please reload gallery page</h1>";
-//        else {
-//            File current = fileList.get (idx);
-//            String myscript = "document.onkeydown = checkKey;\n" +
-//                    "function checkKey(e) {\n" +
-//                    "    e = e || window.event;\n" +
-//                    "    if (e.keyCode == '37') prv.click();\n" +
-//                    "    else if (e.keyCode == '39')  nxt.click();\n" +
-//                    "}";
-//            body = "<script>" + myscript + "</script>";
-//            String headline = ": " + idx + " - " + current.getName () + " - " +
-//                    Tools.humanReadableByteCount (current.length ()) + " - " +
-//                    createNavigationLink (idx, true) +
-//                    createNavigationLink (idx, false) + "<hr>";
-//            if (Tools.isVideo (current.getName ())) {
-//                InetAddress inetAddress = InetAddress.getLocalHost ();
-//                String vidserv = "http://" + inetAddress.getHostAddress () + ":" +
-//                        Http206Transmitter.getInstance ().getPort (); // server
-//                String vid = current.getAbsolutePath (); // video
-//                Http206Transmitter.getInstance ().setVideo (vid);
-//                body = body + "- Vid" + headline +
-//                        "<video width=\"100%\" controls id=\"video\" src=\"" + vidserv + "\" autoplay=\"autoplay\" />";
-//                // "<iframe src=\""+vidserv+"\"></iframe>";
-//            } else {
-//                String img = BIGIMAGE + path.substring (path.indexOf ("?img=") + 5) + NUMSEP + saltValue + ".jpg";
-//                body = body + "- Img" + headline +
-//                        "<img src=\"" + img + "\" style=\"width: 100%;\" />";
-//            }
-//        }
-//        sendHtmlOverHttp (body, out);
-//    }
 
     private byte[] loadTextFile (String file) throws Exception {
         Path p = Paths.get (file);

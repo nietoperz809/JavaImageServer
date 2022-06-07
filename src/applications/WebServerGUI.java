@@ -24,7 +24,7 @@ public class WebServerGUI extends JPanel {
     private static final long serialVersionUID = 1L;
     public boolean browser_startflag;
     private volatile NIOWebServer sockserver = null;
-    Http206Transmitter rrt = null;
+    Http206Transmitter rrt = Http206Transmitter.getInstance();
     private String imgPageStyle = "0";
 
     /**
@@ -128,7 +128,7 @@ public class WebServerGUI extends JPanel {
                 int port = Integer.parseInt(portTxt.getText());
                 String path = pathTxt.getText();
                 if (!new File(path).isDirectory())
-                    throw new Exception("base dir not exist or inaccessible");
+                    throw new Exception("base dir not exist or inaccessible\n"+path);
                 sockserver = new NIOWebServer(port, path, imgPageStyle.charAt (0));
             } catch (Exception e) {
                 button.doClick(); // cancel click
@@ -150,7 +150,6 @@ public class WebServerGUI extends JPanel {
 
             // Start video stream server
             new Thread(() -> {
-                rrt = Http206Transmitter.getInstance();
                 rrt.startServer();
                 rrt.setVideo("");
             }).start();
@@ -162,10 +161,7 @@ public class WebServerGUI extends JPanel {
             sockserver.halt();
             sockserver = null;
         }
-        if (rrt != null) {
-            rrt.halt ();
-            rrt = null;
-        }
+        rrt.halt ();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

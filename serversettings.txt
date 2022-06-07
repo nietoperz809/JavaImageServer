@@ -5,8 +5,8 @@ ftp-path :: C:\Users\Administrator\Desktop\
 
 *** set http params and start web server ***
 http-port :: 80
-http-path :: C:\Users\Administrator\Desktop\fisk2
-http-start
+http-path :: C:\peter.home\fisk 
+***  http-path :: C:\Users\Administrator\Downloads\nackt
 imagepage :: 0
 * http-browser-start
 
